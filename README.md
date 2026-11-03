@@ -5,9 +5,9 @@
   </picture>
 </p>
 
-<!-- Add the paper and discussions URLs when available. -->
+<!-- Add the discussions URL when available. -->
 <p align="center">
-  <img src="docs/assets/badges/paper.svg" alt="Paper · arXiv">
+  <a href="https://arxiv.org/abs/2611.03178"><img src="docs/assets/badges/paper.svg" alt="Paper · arXiv"></a>
   <a href="https://coworkos-ai.github.io/"><img src="docs/assets/badges/project-page.svg" alt="Project page"></a>
   <a href="https://coworkos-ai.github.io/showcase.html"><img src="docs/assets/badges/demo.svg" alt="Live demo"></a>
   <br>

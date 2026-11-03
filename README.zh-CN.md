@@ -5,9 +5,9 @@
   </picture>
 </p>
 
-<!-- 待补充论文与讨论区链接。 -->
+<!-- 待补充讨论区链接。 -->
 <p align="center">
-  <img src="docs/assets/badges/paper.svg" alt="论文 · arXiv">
+  <a href="https://arxiv.org/abs/2611.03178"><img src="docs/assets/badges/paper.svg" alt="论文 · arXiv"></a>
   <a href="https://coworkos-ai.github.io/"><img src="docs/assets/badges/project-page.svg" alt="项目主页"></a>
   <a href="https://coworkos-ai.github.io/showcase.html"><img src="docs/assets/badges/demo.svg" alt="在线演示"></a>
   <br>
