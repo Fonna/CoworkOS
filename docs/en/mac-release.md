@@ -44,6 +44,8 @@ The [Mac release workflow](../../.github/workflows/release-mac.yml) remains avai
 
 Review and commit release source, documentation and validation before tagging. Follow the [version process](../beta-release-process.md) (Chinese) and existing release notes. Use a new version to repair an already-published artifact; never overwrite published assets or move a published tag. The npm workflow downloads and verifies locally built npm archives from the draft, publishes them in order, and checks the public registry. Publish the GitHub Release draft after reviewing the npm results and assets.
 
+npm may accept an upload before the version becomes publicly visible. Registry verification retries and checks each archive's SHA-512. If processing outlasts verification, run the workflow from `main` with the same tag and `verify_only` enabled to verify accepted packages without republishing them.
+
 ## Public component releases
 
 Components are published separately at [Atria-Components Releases](https://github.com/ignorejjj/Atria-Components/releases). Application sources remain private; public App delivery uses Atria-Releases. Testers can share the small DMG in their group and download components anonymously from the App.

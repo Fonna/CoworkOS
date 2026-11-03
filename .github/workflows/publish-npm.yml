@@ -7,6 +7,11 @@ on:
         description: Existing release tag to publish, for example v0.1.3
         required: true
         type: string
+      verify_only:
+        description: Only verify packages already accepted by npm; do not publish again
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -55,6 +60,7 @@ jobs:
         run: node scripts/download-npm-release-assets.mjs
 
       - name: Publish the Mac desktop package
+        if: ${{ !inputs.verify_only }}
         run: >-
           npm publish
           ".tmp/npm-release/coworkos-desktop-darwin-arm64-${{ steps.release.outputs.version }}.tgz"
@@ -63,6 +69,7 @@ jobs:
           --registry=https://registry.npmjs.org
 
       - name: Publish the CLI package
+        if: ${{ !inputs.verify_only }}
         run: >-
           npm publish
           ".tmp/npm-release/coworkos-app-${{ steps.release.outputs.version }}.tgz"
@@ -70,9 +77,18 @@ jobs:
           --provenance
           --registry=https://registry.npmjs.org
 
+      - name: Check out publishing verification tools
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: .tmp/release-tools
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/verify-npm-release.mjs
+            scripts/update-release.mjs
+          sparse-checkout-cone-mode: false
+
       - name: Verify the published versions
         env:
           VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          test "$(npm view --registry=https://registry.npmjs.org coworkos-desktop-darwin-arm64@"$VERSION" version)" = "$VERSION"
-          test "$(npm view --registry=https://registry.npmjs.org coworkos-app@"$VERSION" version)" = "$VERSION"
+        run: node .tmp/release-tools/scripts/verify-npm-release.mjs
