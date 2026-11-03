@@ -2,7 +2,7 @@
 
 [English](en/development.md) | 中文
 
-先读 [AGENTS](../AGENTS.md)、[架构](architecture.md) 和 [代码地图](code-map.md)；贡献规则见 [CONTRIBUTING](../CONTRIBUTING.md)，下一项工作见 [ROADMAP](../ROADMAP.md)。
+先读 [AGENTS](../AGENTS.md)、[架构](architecture.md) 和 [代码地图](code-map.md)；贡献规则见 [CONTRIBUTING](../CONTRIBUTING.md)。
 
 ## 准备环境
 
@@ -25,7 +25,7 @@
 ```sh
 python3.11 -m venv .tmp/document-python
 .tmp/document-python/bin/python -m pip install -r scripts/document-requirements.txt
-COWORK_PYTHON="$PWD/.tmp/document-python/bin/python" npm run verify
+COWORK_PYTHON="$PWD/.tmp/document-python/bin/python" npm run verify:full
 ```
 
 ## 使用隔离的开发工作区
@@ -92,7 +92,7 @@ App 启动后检查一次，用户主动执行才更新。草稿保存、运行�
 1. 从 [代码地图](code-map.md) 找到行为负责人、消费者和测试，读取目标目录的 `AGENTS.md`。
 2. 在临时工作区复现，先运行已有相关测试；修复所属服务/Adapter/控制器，入口只装配。
 3. 增加覆盖原失败或新用户行为的回归。异步行为覆盖归属、取消、晚返回、冲突与退出恢复；协议测试同时验证两端。
-4. 运行相关测试，再执行一次 `npm run verify`。界面、原生驱动和发布包按下面的附加门槛验证。
+4. 按范围运行相关测试和轻量 `npm run verify`；纯文档只做链接/格式检查。发布或广泛影响的修改运行 `npm run verify:full`，界面、原生驱动和发布包另做对应验收。
 5. 同步代码地图、现行文档和路线图状态；交付实际命令、结果、跳过项和剩余限制。
 
 ```sh
@@ -106,19 +106,20 @@ npm run verify
 
 ## 验证分层
 
-| 命令                                                      | 验证范围                                                                                         | 使用时机                                                 |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| `npm run test:unit -- --file test/name.test.js`           | 有针对性的 Node 行为/协议/生命周期测试，默认先构建                                               | 每次相关修改的快速反馈                                   |
-| `npm run verify`                                          | 一次完整构建、源码卫生、lint、工作台/Pi 类型、增量格式、文档链接、发布执行器自测和普通 Node 回归 | 完成一项修改后的默认本地门槛                             |
-| `npm test` / `npm run check`                              | 保留的 Node 回归 / 构建与静态检查入口                                                            | 兼容现有本地脚本；已执行 verify 时无需为同一源码重复跑   |
-| `npm run check:ci`                                        | CLI 构建、源码卫生、lint、工作台/Pi 类型、增量格式和文档链接                                     | 手动 GitHub 轻量检查；本地 verify 与相关测试仍是完成门槛 |
-| `npm run check:source`                                    | 当前受版本管理及非忽略的源码文件；检查私有配置、凭据、个人路径和不应提交的产物/旧文档            | 提交和发行前；不扫描 Git 历史                            |
-| `npm run check:docs`                                      | 现行导航的本地 Markdown 文件链接和标题锚点；不请求外部网站                                       | 文档和代码路径修改，可 `-- --list` 查看范围              |
-| `npx playwright install chromium`                         | 安装 Chromium                                                                                    | 首次浏览器测试准备                                       |
-| `npm run test:browser`                                    | Chromium / Electron 用户流程；原生场景有各自环境要求                                             | UI、HTTP/UI 集成、草稿、导航、协作变更                   |
-| `npm run desktop:pack` 后 `npm run test:desktop`          | 搬移后的真实打包 App、设置、Pi/本地模型、退出/重启/模拟升级                                      | 桌面宿主、运行生命周期、打包变更                         |
-| `npm run test:release -- --list` / `npm run test:release` | 五环节发版用例，记录版本、日志、跳过与人工项                                                     | 候选发布验收；原生/包阶段显式加入                        |
-| `npm run smoke:coding` / `npm run smoke:multi-subagent`   | 实际 endpoint 和多智能体；消耗模型额度                                                           | 模型能力与真实服务验收，先配置连接                       |
+| 命令                                                      | 验证范围                                                                              | 使用时机                                                    |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `npm run test:unit -- --file test/name.test.js`           | 有针对性的 Node 行为/协议/生命周期测试，默认先构建                                    | 每次相关修改的快速反馈                                      |
+| `npm run verify`                                          | CLI 构建、源码卫生、lint、工作台/Pi 类型、增量格式和文档链接；不运行行为测试          | 完成一项修改后的默认本地门槛                                |
+| `npm run verify:full`                                     | 一次完整构建、静态检查、发布执行器自测和全量 Node 回归                                | 发布验收或影响范围广的修改                                  |
+| `npm test` / `npm run check`                              | 保留的 Node 回归 / 构建与静态检查入口                                                 | 兼容现有本地脚本；已执行 verify:full 时无需为同一源码重复跑 |
+| `npm run check:ci`                                        | CLI 构建、源码卫生、lint、工作台/Pi 类型、增量格式和文档链接                          | 手动 GitHub 轻量检查；本地 verify 与相关测试仍是完成门槛    |
+| `npm run check:source`                                    | 当前受版本管理及非忽略的源码文件；检查私有配置、凭据、个人路径和不应提交的产物/旧文档 | 提交和发行前；不扫描 Git 历史                               |
+| `npm run check:docs`                                      | 现行导航的本地 Markdown 文件链接和标题锚点；不请求外部网站                            | 文档和代码路径修改，可 `-- --list` 查看范围                 |
+| `npx playwright install chromium`                         | 安装 Chromium                                                                         | 首次浏览器测试准备                                          |
+| `npm run test:browser`                                    | Chromium / Electron 用户流程；原生场景有各自环境要求                                  | UI、HTTP/UI 集成、草稿、导航、协作变更                      |
+| `npm run desktop:pack` 后 `npm run test:desktop`          | 搬移后的真实打包 App、设置、Pi/本地模型、退出/重启/模拟升级                           | 桌面宿主、运行生命周期、打包变更                            |
+| `npm run test:release -- --list` / `npm run test:release` | 五环节发版用例，记录版本、日志、跳过与人工项                                          | 候选发布验收；原生/包阶段显式加入                           |
+| `npm run smoke:coding` / `npm run smoke:multi-subagent`   | 实际 endpoint 和多智能体；消耗模型额度                                                | 模型能力与真实服务验收，先配置连接                          |
 
 普通 Node 回归排除单独的原生桌面/CUA 验收入口，并打印原因；可选引擎仍可能报告 TAP skip。详细前提、报告和显式原生命令见 [本地测试指南](testing-local-run.md)。本地协议夹具验证真实 Pi 的协议/生命周期，不证明实际模型能力；浏览器通过也不证明干净机器安装。检查范围以 [package.json](../package.json) 和执行器为准。
 
@@ -166,7 +167,7 @@ TXT 状态与 DOM 分开；CAD 引擎/预览与 UI 分开；Blender/PPTist sessi
 
 [常规工作流](../.github/workflows/test.yml) 仅通过 Actions 手动触发，使用单组 Ubuntu + Node 24；push 和 PR 不自动执行静态检查。安装时跳过 Electron 二进制下载，然后执行 `npm run check:ci`：`build:cli`、源码卫生、lint、工作台/Pi 类型、增量格式和现行文档链接检查。
 
-完整 Node 回归、浏览器、原生引擎、实际模型和安装包体验在本地完成；日常完整工程检查仍用 `npm run verify`，按改动增加对应层的验收。手动 GitHub 常规检查只提供构建与静态反馈，相关行为验证证据随 PR 提交。
+完整 Node 回归、浏览器、原生引擎、实际模型和安装包体验在本地完成；日常使用轻量 `npm run verify` 与相关测试；发布或广泛影响的修改用 `npm run verify:full`，按改动增加对应层的验收。手动 GitHub 常规检查只提供构建与静态反馈，相关行为验证证据随 PR 提交。
 
 [Internal Mac package](../.github/workflows/internal-mac.yml) 仅手动生成并上传 arm64 内测 DMG/校验文件，不承担完整回归、浏览器或桌面 smoke。[Release Mac DMG](../.github/workflows/release-mac.yml) 则在版本 tag 推送后构建 DMG/CLI 与校验文件，并上传 GitHub Release 草稿，由维护者审阅后 Publish；只有显式配置并验证 Developer ID 签名时，另生成 ZIP、校验文件与 Mac 更新 feed。当前未配置签名，默认仍为 arm64 未签名候选。候选包生成后按 [Mac 发布指南](mac-release.md) 本地安装验收。发布前须完成安装与实际任务验收；分支保护需单独配置。
 

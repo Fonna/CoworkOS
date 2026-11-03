@@ -4,6 +4,10 @@ CoworkOS 自有代码使用 [MIT](LICENSE)。第三方代码、依赖与外部�
 
 CoworkOS's original code is licensed under [MIT](LICENSE). Third-party sources, dependencies and external runtimes retain their own licenses, copyrights and distribution terms. The root MIT license does not replace them.
 
+本文许可链接指向锁定版本的上游文件或 npm 源包（其中包含 LICENSE、NOTICE 或 README 许可章节），源码仓库不再维护根目录 `licenses/` 副本。发行包中实际保留的许可仍按最终包内容单独校验。
+
+License links below point to versioned upstream files or npm source archives containing the LICENSE, NOTICE or README license section. This checkout no longer maintains root `licenses/` copies. License retention in distributed artifacts is checked against the actual packages separately.
+
 ## Inter 界面字体 / Interface typeface
 
 应用随包分发 [Inter Variable](web/assets/fonts/InterVariable.woff2)，来自 [Inter](https://github.com/rsms/inter) 官方字体的 [inter-ui 4.1.1 npm 发行](https://registry.npmjs.org/inter-ui/-/inter-ui-4.1.1.tgz)（`variable/InterVariable.woff2`）。字体未经修改，SHA-256 为 `693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3`，支持 100–900 字重与光学字号。版权所有者为 The Inter Project Authors，适用 **SIL Open Font License 1.1**；完整[许可及版权声明](web/assets/fonts/Inter-LICENSE.txt)与字体一起保留。字体由本地加载，不增加运行时网络请求或 npm 依赖。
@@ -26,37 +30,37 @@ The PPTist browser editor is included with Web/App, and is absent from the CLI t
 
 The bundled presentation editor comes from [PPTist](https://github.com/pipipi-pikachu/PPTist). Its vendored manifest reports version `2.0.0`; the full [GNU AGPL-3.0 license](vendor/pptist/LICENSE) is retained. CoworkOS's bridge and local modifications live in `vendor/pptist/`. The build provides corresponding source and license downloads. Review the source, notices and license in the actual distributed package; the application-wide distribution should not be described solely as MIT.
 
-当前编辑器构建包含 Vue `3.5.43` 与 Apache ECharts `6.1.0`。随包保留锁定 npm 发行中的 [Vue MIT 许可证](licenses/vue-3.5.43-LICENSE.txt)、[ECharts 许可证](licenses/echarts-6.1.0-LICENSE.txt)及 [ECharts NOTICE](licenses/echarts-6.1.0-NOTICE.txt)。上游来源：[Vue v3.5.43](https://github.com/vuejs/core/tree/v3.5.43)、[ECharts 6.1.0](https://github.com/apache/echarts/tree/6.1.0)。CLI 的许可目录保留这些文件供参考，不代表 CLI 包含 PPTist 浏览器编辑器。
+当前编辑器构建包含 Vue `3.5.43` 与 Apache ECharts `6.1.0`。随包保留锁定 npm 发行中的 [Vue MIT 许可证](https://registry.npmjs.org/vue/-/vue-3.5.43.tgz)、[ECharts 许可证](https://registry.npmjs.org/echarts/-/echarts-6.1.0.tgz)及 [ECharts NOTICE](https://registry.npmjs.org/echarts/-/echarts-6.1.0.tgz)。上游来源：[Vue v3.5.43](https://github.com/vuejs/core/tree/v3.5.43)、[ECharts 6.1.0](https://github.com/apache/echarts/tree/6.1.0)。CLI 不包含 PPTist 浏览器编辑器。
 
-The editor build includes Vue `3.5.43` and Apache ECharts `6.1.0`. The package retains the locked npm distributions' [Vue MIT license](licenses/vue-3.5.43-LICENSE.txt), [ECharts license](licenses/echarts-6.1.0-LICENSE.txt), and [ECharts NOTICE](licenses/echarts-6.1.0-NOTICE.txt). Sources: [Vue v3.5.43](https://github.com/vuejs/core/tree/v3.5.43) and [ECharts 6.1.0](https://github.com/apache/echarts/tree/6.1.0). The CLI retains these files for reference; it does not include the PPTist browser editor.
+The editor build includes Vue `3.5.43` and Apache ECharts `6.1.0`. The package retains the locked npm distributions' [Vue MIT license](https://registry.npmjs.org/vue/-/vue-3.5.43.tgz), [ECharts license](https://registry.npmjs.org/echarts/-/echarts-6.1.0.tgz), and [ECharts NOTICE](https://registry.npmjs.org/echarts/-/echarts-6.1.0.tgz). Sources: [Vue v3.5.43](https://github.com/vuejs/core/tree/v3.5.43) and [ECharts 6.1.0](https://github.com/apache/echarts/tree/6.1.0). The CLI does not include the PPTist browser editor.
 
 ## KaTeX
 
-Web/App 的数学排版使用锁定的 [KaTeX 0.19.0](https://github.com/KaTeX/KaTeX/tree/v0.19.0)，保留其 [MIT 许可证及版权全文](licenses/katex-0.19.0-LICENSE.txt)。构建从原始 npm 发行复制浏览器 ESM（仅将 `.mjs` 改名为 `.js`）、CSS、字体和许可证到本地静态资源，不修改上游实现，不依赖外部 CDN。CLI tgz 不包含 Web 排版资源。
+Web/App 的数学排版使用锁定的 [KaTeX 0.19.0](https://github.com/KaTeX/KaTeX/tree/v0.19.0)，保留其 [MIT 许可证及版权全文](https://registry.npmjs.org/katex/-/katex-0.19.0.tgz)。构建从原始 npm 发行复制浏览器 ESM（仅将 `.mjs` 改名为 `.js`）、CSS、字体和许可证到本地静态资源，不修改上游实现，不依赖外部 CDN。CLI tgz 不包含 Web 排版资源。
 
-Web/App math uses pinned [KaTeX 0.19.0](https://github.com/KaTeX/KaTeX/tree/v0.19.0), retaining its [complete MIT license and copyright notice](licenses/katex-0.19.0-LICENSE.txt). Builds copy the original npm distribution's browser ESM (renaming only `.mjs` to `.js`), CSS, fonts and license into local static assets without modifying the implementation or requiring an external CDN. The CLI archive excludes these Web rendering assets.
+Web/App math uses pinned [KaTeX 0.19.0](https://github.com/KaTeX/KaTeX/tree/v0.19.0), retaining its [complete MIT license and copyright notice](https://registry.npmjs.org/katex/-/katex-0.19.0.tgz). Builds copy the original npm distribution's browser ESM (renaming only `.mjs` to `.js`), CSS, fonts and license into local static assets without modifying the implementation or requiring an external CDN. The CLI archive excludes these Web rendering assets.
 
 ## Dependencies and external runtimes
 
-视觉观察的 PNG 裁剪与缩放使用纯 JavaScript 的 `pngjs` `7.0.0`，随 CLI/App 生产依赖分发，保留其完整 [MIT 许可证](licenses/pngjs-7.0.0-LICENSE.txt)。来源为 [pngjs v7.0.0](https://github.com/pngjs/pngjs/tree/v7.0.0)。类型依赖 `@types/pngjs` `6.0.5` 仅用于开发。
+视觉观察的 PNG 裁剪与缩放使用纯 JavaScript 的 `pngjs` `7.0.0`，随 CLI/App 生产依赖分发，保留其完整 [MIT 许可证](https://registry.npmjs.org/pngjs/-/pngjs-7.0.0.tgz)。来源为 [pngjs v7.0.0](https://github.com/pngjs/pngjs/tree/v7.0.0)。类型依赖 `@types/pngjs` `6.0.5` 仅用于开发。
 
-PNG cropping and resizing use the pure JavaScript `pngjs` `7.0.0` package, distributed as a CLI/App production dependency with its complete [MIT license](licenses/pngjs-7.0.0-LICENSE.txt). Source: [pngjs v7.0.0](https://github.com/pngjs/pngjs/tree/v7.0.0). `@types/pngjs` `6.0.5` is a development-only type dependency.
+PNG cropping and resizing use the pure JavaScript `pngjs` `7.0.0` package, distributed as a CLI/App production dependency with its complete [MIT license](https://registry.npmjs.org/pngjs/-/pngjs-7.0.0.tgz). Source: [pngjs v7.0.0](https://github.com/pngjs/pngjs/tree/v7.0.0). `@types/pngjs` `6.0.5` is a development-only type dependency.
 
-Browser Use 使用 `playwright-core` `1.63.0`，保留 [Apache-2.0 许可证](licenses/playwright-core-1.63.0-LICENSE.txt)与 [NOTICE](licenses/playwright-core-1.63.0-NOTICE.txt)。来源为 [Playwright v1.63.0](https://github.com/microsoft/playwright/tree/v1.63.0)。浏览器二进制单独安装，未加入 CLI/App 安装包；实际浏览器分发许可与安装验收单独核对。
+Browser Use 使用 `playwright-core` `1.63.0`，保留 [Apache-2.0 许可证](https://registry.npmjs.org/playwright-core/-/playwright-core-1.63.0.tgz)与 [NOTICE](https://registry.npmjs.org/playwright-core/-/playwright-core-1.63.0.tgz)。来源为 [Playwright v1.63.0](https://github.com/microsoft/playwright/tree/v1.63.0)。浏览器二进制单独安装，未加入 CLI/App 安装包；实际浏览器分发许可与安装验收单独核对。
 
-Browser Use uses `playwright-core` `1.63.0` with its [Apache-2.0 license](licenses/playwright-core-1.63.0-LICENSE.txt) and [NOTICE](licenses/playwright-core-1.63.0-NOTICE.txt), from [Playwright v1.63.0](https://github.com/microsoft/playwright/tree/v1.63.0). Browser binaries are installed separately and are absent from the CLI/App archive; their distribution licenses and installation checks are independent.
+Browser Use uses `playwright-core` `1.63.0` with its [Apache-2.0 license](https://registry.npmjs.org/playwright-core/-/playwright-core-1.63.0.tgz) and [NOTICE](https://registry.npmjs.org/playwright-core/-/playwright-core-1.63.0.tgz), from [Playwright v1.63.0](https://github.com/microsoft/playwright/tree/v1.63.0). Browser binaries are installed separately and are absent from the CLI/App archive; their distribution licenses and installation checks are independent.
 
-Pi 的 `@earendil-works/pi-agent-core`、`pi-ai`、`pi-coding-agent`、`pi-tui`、`pi-telemetry` 与 `chord` 随当前 CLI/App 以 `0.87.1` 分发。两种包均携带[该版本上游完整 MIT 许可证及 Mario Zechner 版权声明](licenses/pi-0.87.1-LICENSE.txt)，来源为 [Pi v0.87.1 的 LICENSE](https://github.com/earendil-works/pi/blob/v0.87.1/LICENSE)。
+Pi 的 `@earendil-works/pi-agent-core`、`pi-ai`、`pi-coding-agent`、`pi-tui`、`pi-telemetry` 与 `chord` 随当前 CLI/App 以 `0.87.1` 分发。两种包均携带[该版本上游完整 MIT 许可证及 Mario Zechner 版权声明](https://github.com/earendil-works/pi/blob/v0.87.1/LICENSE)，来源为 [Pi v0.87.1 的 LICENSE](https://github.com/earendil-works/pi/blob/v0.87.1/LICENSE)。
 
-The CLI/App distributes Pi's `@earendil-works/pi-agent-core`, `pi-ai`, `pi-coding-agent`, `pi-tui`, `pi-telemetry`, and `chord` at `0.87.1`. Both packages carry the [complete upstream MIT license and Mario Zechner copyright notice](licenses/pi-0.87.1-LICENSE.txt), from [Pi v0.87.1's LICENSE](https://github.com/earendil-works/pi/blob/v0.87.1/LICENSE).
+The CLI/App distributes Pi's `@earendil-works/pi-agent-core`, `pi-ai`, `pi-coding-agent`, `pi-tui`, `pi-telemetry`, and `chord` at `0.87.1`. Both packages carry the [complete upstream MIT license and Mario Zechner copyright notice](https://github.com/earendil-works/pi/blob/v0.87.1/LICENSE), from [Pi v0.87.1's LICENSE](https://github.com/earendil-works/pi/blob/v0.87.1/LICENSE).
 
 CLI 的交互界面通过 Pi 公开的 `PI_PACKAGE_DIR`、`piConfig.name` 与扩展 UI API 显示 CoworkOS 品牌。适配器在 CLI 数据目录生成独立运行时元数据，保留 Pi 原始代码、资源、文档、版权及许可证；不会修改安装依赖。实现见 [CLI 品牌适配器](scripts/cli-branding.mjs)。
 
 The interactive CLI uses Pi's public `PI_PACKAGE_DIR`, `piConfig.name`, and extension UI APIs to display the CoworkOS brand. The adapter creates separate runtime metadata in the CLI data directory and preserves Pi's original code, assets, documentation, copyright and license without modifying installed dependencies. See the [CLI branding adapter](scripts/cli-branding.mjs).
 
-CLI/App 同时保留 `data-uri-to-buffer` `4.0.1` 的 [MIT 许可及 Nathan Rajlich 版权全文](licenses/data-uri-to-buffer-4.0.1-LICENSE.txt)，以及 `isarray` `1.0.0` 的 [MIT 许可及 Julian Gruber 版权全文](licenses/isarray-1.0.0-LICENSE.txt)。两份原文从锁定 npm 发行的 README 许可章节提取，避免 App 打包排除 README 时丢失许可和版权。
+CLI/App 同时保留 `data-uri-to-buffer` `4.0.1` 的 [MIT 许可及 Nathan Rajlich 版权全文](https://registry.npmjs.org/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz)，以及 `isarray` `1.0.0` 的 [MIT 许可及 Julian Gruber 版权全文](https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz)。两份原文从锁定 npm 发行的 README 许可章节提取，避免 App 打包排除 README 时丢失许可和版权。
 
-The CLI/App also preserves the complete [MIT license and Nathan Rajlich copyright notice for data-uri-to-buffer 4.0.1](licenses/data-uri-to-buffer-4.0.1-LICENSE.txt), and the [MIT license and Julian Gruber copyright notice for isarray 1.0.0](licenses/isarray-1.0.0-LICENSE.txt). Both texts are copied verbatim from the locked npm distributions' README license sections so that App packaging retains them when README files are excluded.
+The CLI/App also preserves the complete [MIT license and Nathan Rajlich copyright notice for data-uri-to-buffer 4.0.1](https://registry.npmjs.org/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz), and the [MIT license and Julian Gruber copyright notice for isarray 1.0.0](https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz). Both texts are copied verbatim from the locked npm distributions' README license sections so that App packaging retains them when README files are excluded.
 
 Node 依赖版本由根 `package-lock.json` 和 `vendor/pptist/package-lock.json` 锁定。CLI 包保留生产依赖的声明和许可证，并携带可发布的 `npm-shrinkwrap.json`；esbuild 的原生运行组件以测试过的精确版本在安装时获取。当前文档不是完整的传递依赖版权清单。公开发布前，发布负责人须对最终 CLI/App 分发物生成并核对完整第三方清单，保留所需许可证文件。
 
@@ -78,9 +82,9 @@ Mac App 的 CAD 运行时含 CadQuery `2.6.1`、`cadquery-ocp` `7.8.1.1.post1`�
 
 The Mac App's CAD runtime contains CadQuery `2.6.1`, `cadquery-ocp` `7.8.1.1.post1`, Open CASCADE Technology (OCCT) `7.8.1`, and CasADi `3.8.1`. The CLI tgz does not contain this Python/native runtime. It retains CPython's `lib/python3.11/LICENSE.txt`, Python package licenses, and the `THIRD_PARTY_LICENSES.txt` index. The OCP bindings' Apache-2.0 license and the OCCT kernel's license apply separately.
 
-OCCT 使用 [LGPL-2.1](licenses/occt-7.8.1-LGPL-2.1.txt)及 [OCCT 例外条款](licenses/occt-7.8.1-LGPL-exception.txt)。这两份文件原样来自 [OCCT V7_8_1](https://github.com/Open-Cascade-SAS/OCCT/tree/V7_8_1)；该版本完整上游源码可从 [V7_8_1 源码归档](https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V7_8_1.tar.gz)取得。
+OCCT 使用 [LGPL-2.1](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/LICENSE_LGPL_21.txt)及 [OCCT 例外条款](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/OCCT_LGPL_EXCEPTION.txt)。这两份文件原样来自 [OCCT V7_8_1](https://github.com/Open-Cascade-SAS/OCCT/tree/V7_8_1)；该版本完整上游源码可从 [V7_8_1 源码归档](https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V7_8_1.tar.gz)取得。
 
-OCCT uses [LGPL-2.1](licenses/occt-7.8.1-LGPL-2.1.txt) with the [OCCT exception](licenses/occt-7.8.1-LGPL-exception.txt). Both texts are copied verbatim from [OCCT V7_8_1](https://github.com/Open-Cascade-SAS/OCCT/tree/V7_8_1). Its complete upstream source is available in the [V7_8_1 source archive](https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V7_8_1.tar.gz).
+OCCT uses [LGPL-2.1](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/LICENSE_LGPL_21.txt) with the [OCCT exception](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/OCCT_LGPL_EXCEPTION.txt). Both texts are copied verbatim from [OCCT V7_8_1](https://github.com/Open-Cascade-SAS/OCCT/tree/V7_8_1). Its complete upstream source is available in the [V7_8_1 source archive](https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V7_8_1.tar.gz).
 
 CasADi 使用 LGPL-3.0-or-later，运行时已保留 `lib/python3.11/site-packages/casadi/include/licenses/casadi/LICENSE/LICENSE.txt` 及其第三方许可目录。对应版本的完整上游源码及构建文件见 [CasADi 3.8.1](https://github.com/casadi/casadi/tree/3.8.1)和 [3.8.1 源码归档](https://github.com/casadi/casadi/archive/refs/tags/3.8.1.tar.gz)。这些链接标明上游版本；最终发行还需核对所分发 wheel 的构建来源及其中第三方组件的源代码要求。
 
@@ -128,6 +132,6 @@ The standalone scene's WebGL dependency is [OGL 1.0.11](https://www.npmjs.com/pa
 
 ## Markdown document preview
 
-Web/App 文档预览使用 Marked 18.1.1（MIT）和 DOMPurify 3.4.17（Apache-2.0 OR MPL-2.0）。构建将浏览器依赖打包到本地静态资源，并复制上游许可证；不依赖 CDN。完整许可见 [Marked](licenses/marked-18.1.1-LICENSE.txt) 与 [DOMPurify](licenses/dompurify-3.4.17-LICENSE.txt)。
+Web/App 文档预览使用 Marked 18.1.1（MIT）和 DOMPurify 3.4.17（Apache-2.0 OR MPL-2.0）。构建将浏览器依赖打包到本地静态资源，并复制上游许可证；不依赖 CDN。完整许可见 [Marked](https://registry.npmjs.org/marked/-/marked-18.1.1.tgz) 与 [DOMPurify](https://registry.npmjs.org/dompurify/-/dompurify-3.4.17.tgz)。
 
 Web/App document previews bundle Marked 18.1.1 (MIT) and DOMPurify 3.4.17 (Apache-2.0 OR MPL-2.0) as local browser assets, with their upstream licenses and no CDN dependency.

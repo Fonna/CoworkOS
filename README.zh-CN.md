@@ -59,14 +59,13 @@ coworkos
 
 ## 文档与贡献
 
-| 文档                                                         | 说明                                |
-| ------------------------------------------------------------ | ----------------------------------- |
-| [使用指南](docs/README.md)                                   | 安装 CoworkOS、配置模型并了解工作流 |
-| [模型设置](docs/configuration.md)                            | 配置服务地址、模型 ID 和连接格式    |
-| [更新与排错](docs/installation-reference.md)                 | 更新、备份、恢复和安装问题排查      |
-| [开发指南](docs/development.md)                              | 构建 Web/Desktop/CLI 并运行本地检查 |
-| [贡献指南](CONTRIBUTING.md)                                  | 贡献流程和验证要求                  |
-| [路线图](ROADMAP.md)                                         | 当前能力、发布门槛和后续计划        |
+| 文档                                                     | 说明                                |
+| -------------------------------------------------------- | ----------------------------------- |
+| [使用指南](docs/README.md)                               | 安装 CoworkOS、配置模型并了解工作流 |
+| [模型设置](docs/configuration.md)                        | 配置服务地址、模型 ID 和连接格式    |
+| [更新与排错](docs/installation-reference.md)             | 更新、备份、恢复和安装问题排查      |
+| [开发指南](docs/development.md)                          | 构建 Web/Desktop/CLI 并运行本地检查 |
+| [贡献指南](CONTRIBUTING.md)                              | 贡献流程和验证要求                  |
 | [反馈问题](https://github.com/RUC-NLPIR/CoworkOS/issues) | 报告问题或提出改进建议              |
 
 ## 致谢与许可

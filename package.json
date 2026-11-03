@@ -41,6 +41,7 @@
     "test:release:runner": "node --test test/release/runner.test.mjs",
     "desktop:install-dev": "npm run build && node scripts/desktop-dev.mjs --install",
     "verify": "node scripts/verify.mjs",
+    "verify:full": "node scripts/verify.mjs --full",
     "test:unit": "node scripts/test.mjs --build",
     "check:docs": "node scripts/check-docs.mjs",
     "check:source": "node scripts/check-source.mjs",

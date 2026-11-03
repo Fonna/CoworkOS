@@ -2,7 +2,7 @@
 
 English | [简体中文](../testing-local-run.md)
 
-Run `npm run verify` at the repository root after each completed change. It builds once, checks code, types, changed-file formatting and maintained documentation links, then runs release-runner self-tests and the full deterministic Node suite. Browser, native window, real model and final package checks have separate entry points. See the [development guide](development.md) for environment and Python attachment dependencies.
+Match validation to scope: documentation-only edits need `npm run check:docs` and `npm run format:check`; behavior changes need focused tests and lightweight `npm run verify`. Use `npm run verify:full` for release acceptance or changes with broad impact. Browser, native window, real model and final package checks have separate entry points. See the [development guide](development.md) for environment and Python attachment dependencies.
 
 ## Daily development
 
@@ -10,15 +10,19 @@ Run `npm run verify` at the repository root after each completed change. It buil
 npm ci
 npm run verify
 
-# Print the execution plan without building or testing
+# Releases or broad changes: complete build and full regression
+npm run verify:full
+
+# Print the quick/full execution plan without building or testing
 npm run verify -- --list
+npm run verify:full -- --list
 ```
 
-The steps are `build`, `lint`, `check:workbench`, `check:extensions`, `format:check`, `check:docs`, `check:source`, `test:release:runner`, then the Node suite. The runner stops at the first failure and preserves its exit code.
+`verify` runs `build:cli`, `lint`, `check:workbench`, `check:extensions`, `format:check`, `check:docs` and `check:source`, without behavioral tests. `verify:full` (equivalent to `verify -- --full`) uses one `build:full`, then static checks, `test:release:runner` and the complete Node suite. Both modes stop at the first failure and preserve its exit code. Quick checks do not certify related behavior or the full suite.
 
 `format:check` checks changed files; Manual CI uses `FORMAT_BASE=HEAD^` to compare the previous commit; set `FORMAT_BASE` locally for a different baseline.
 
-`check:docs` checks local file links and Markdown heading anchors in maintained Chinese/English documentation and module AGENTS files. It ignores code examples and does not request external URLs.
+`check:docs` checks local file links and Markdown heading anchors in maintained Chinese/English documentation and module AGENTS files. It ignores code examples and does not request external URLs. Retired documents are no longer required sources; removing a document also requires updating its consumers, and stale links still fail. Third-party license links use versioned upstream sources; license retention inside release artifacts is checked separately.
 
 `npm run check:source` scans current tracked and nonignored first-party text for private paths, credential-shaped strings, numeric gateways and private/generated directories; it does not scan Git history.
 
@@ -27,6 +31,9 @@ Run `npm run check:docs -- --list` to see the scope. Add new maintained guides t
 Focus on relevant files during development:
 
 ```sh
+# Pure script tests without compiled runtime imports need no product build
+node --test test/repository-checks.test.js
+
 # List matching files; an empty selection is a failure
 npm run test:unit -- --list --match application-
 
@@ -41,13 +48,13 @@ npm run test:unit -- --skip-build --file test/text-document-session.test.js --co
 
 `--match` is a case-sensitive file-path substring. `--file` is an exact repository-relative source test path. They cannot be combined. Unknown files and empty matches fail before building.
 
-The runner discovers `.test.js`, `.test.mjs` and `.test.ts` files recursively under `test/`. TypeScript tests run their compiled output; p0/p1/p2 retain their script assertions. The release runner under `test/release/` is invoked separately, and its self-tests are included in `verify`. New tests should use isolated fixtures, temporary directories and fake model services.
+The runner discovers `.test.js`, `.test.mjs` and `.test.ts` files recursively under `test/`. TypeScript tests run their compiled output; p0/p1/p2 retain their script assertions. The release runner under `test/release/` is invoked separately, and its self-tests are included in `verify:full`. New tests should use isolated fixtures, temporary directories and fake model services.
 
 Ordinary Node checks print deferred native work: `computer-native.test.js` and the visible desktop development relaunch variant. The existing release catalog controls these gates. Ordinary runs disable the desktop native variant even when its environment variable is set on the developer machine; use `--native` below for real window operation.
 
 Other CAD, Blender and Mac-specific tests still run or explicitly skip according to their own prerequisites. Exit code 0 does not validate skipped checks. Record actual counts and skip reasons for the current run.
 
-`npm test` and `npm run check` remain available for existing Node and static checks. Running both rebuilds twice; use `verify` for a complete daily check.
+`npm test` and `npm run check` remain available for existing Node and static checks. Running both rebuilds twice; use `verify:full` when explicitly requesting the complete suite.
 
 Routine GitHub checks are manual-only with no automatic push/PR triggers. Manual runs use lightweight `npm run check:ci` for the CLI build, lint, types, incremental format, documentation links and source hygiene. Full Node, browser, native, actual-model and release acceptance run locally; lightweight CI passing does not certify those behaviors. See [development](development.md#github-actions) for triggers.
 
@@ -113,7 +120,7 @@ npm run test:release -- --native --packages
 # Debug an existing complete build; the report records build omission
 npm run test:release -- --stage cli --skip-build
 
-# Runner regression only; verify includes it, ordinary npm test/CI does not
+# Runner regression only; verify:full includes it, ordinary npm test/CI does not
 npm run test:release:runner
 ```
 

@@ -1,6 +1,6 @@
 # Cowork 长程任务与 Virtual Agent 设计
 
-> 文档归类：历史专项设计，以下模型、阶段差距与实现顺序保留设计背景，不作为现行缺口清单。长期目标、模板登记、应用内动态、Dashboard Main 恢复与显式 macOS 服务已有实现，当前交付范围以 [ROADMAP](../ROADMAP.md)、[目标架构](long-term-goals-architecture.md)、[运行时参考](runtime-reference.md#长期目标接口与调度) 和 [暂停契约](monitoring-pause-contract.md) 为准；设计时序不证明生产验收。
+> 文档归类：历史专项设计，以下模型、阶段差距与实现顺序保留设计背景，不作为现行缺口清单。长期目标、模板登记、应用内动态、Dashboard Main 恢复与显式 macOS 服务已有实现，当前交付范围以 [目标架构](long-term-goals-architecture.md)、[运行时参考](runtime-reference.md#长期目标接口与调度) 和 [暂停契约](monitoring-pause-contract.md) 为准；设计时序不证明生产验收。
 
 ## 1. 设计目标
 

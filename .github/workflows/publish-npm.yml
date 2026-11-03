@@ -48,7 +48,20 @@ jobs:
         id: release
         run: node scripts/release-metadata.mjs
 
+      - name: Check out publishing verification tools
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: .tmp/release-tools
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/verify-npm-release.mjs
+            scripts/update-release.mjs
+            scripts/download-npm-release-assets.mjs
+          sparse-checkout-cone-mode: false
+
       - name: Check the GitHub Release is still a draft
+        if: ${{ !inputs.verify_only }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/release-draft.mjs check
@@ -57,7 +70,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.release.outputs.version }}
-        run: node scripts/download-npm-release-assets.mjs
+          VERIFY_ONLY: ${{ inputs.verify_only }}
+        run: node .tmp/release-tools/scripts/download-npm-release-assets.mjs
 
       - name: Publish the Mac desktop package
         if: ${{ !inputs.verify_only }}
@@ -76,17 +90,6 @@ jobs:
           --access public
           --provenance
           --registry=https://registry.npmjs.org
-
-      - name: Check out publishing verification tools
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          path: .tmp/release-tools
-          persist-credentials: false
-          sparse-checkout: |
-            scripts/verify-npm-release.mjs
-            scripts/update-release.mjs
-          sparse-checkout-cone-mode: false
 
       - name: Verify the published versions
         env:

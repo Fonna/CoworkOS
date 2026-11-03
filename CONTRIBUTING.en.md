@@ -6,11 +6,11 @@ Use Node >=22.19.0 and `npm ci`. People and coding agents start with [AGENTS](AG
 
 ## Definition of a completed change
 
-1. Define the triggering scenario, resulting behavior, owning module and consumers. Add concrete scope when selecting a roadmap item.
+1. Define the triggering scenario, resulting behavior, owning module and consumers. Include concrete scope and acceptance criteria.
 2. Reproduce in isolated data and fix the owning service/adapter/controller. Domain tools have their own modules; entrypoints compose dependencies.
 3. Add meaningful behavioral coverage for failure, cancellation, async identity, conflict or recovery where affected; use the code map to select tests.
-4. Run related tests and one `npm run verify`; add UI/native/package acceptance where relevant and report failures/skips.
-5. Update current docs, code map and roadmap status; describe problem, outcome, validation and limitations.
+4. Match validation to scope: documentation-only edits need link/format checks; behavior changes need related tests and lightweight `npm run verify`. Run `npm run verify:full` for releases or broad changes; add UI/native/package acceptance where relevant and report failures/skips.
+5. Update current docs and code map; describe problem, outcome, validation and limitations.
 
 ```sh
 npm run test:unit -- --file test/name.test.js
@@ -45,7 +45,7 @@ Keep each PR focused on one complete change. Use the [PR template](.github/pull_
 
 After local verify, add relevant browser/platform/native/install acceptance and include evidence in the PR. Routine GitHub checks are manual-only, running lightweight `check:ci` build/static checks without automatic push/PR triggers; the Mac workflow uploads only Release drafts, which maintainers publish after acceptance. Local behavioral requirements remain unchanged. Triggers are in [development](docs/en/development.md#github-actions).
 
-Before making the corresponding product/platform commitments, a formal/stable release satisfies the [P0 gates](ROADMAP.en.md#p0-public-release-gates): license/notices, distribution, actual models, Developer ID signing/notarization, clean installation and upgrade recovery. A public beta with limited scope documents its support, installation method and pending acceptance separately; it does not certify that every stable-release P0 gate is complete.
+Before making the corresponding product/platform commitments, a formal/stable release satisfies the following P0 gates: license/notices, distribution, actual models, Developer ID signing/notarization, clean installation and upgrade recovery. A public beta with limited scope documents its support, installation method and pending acceptance separately; it does not certify that every stable-release P0 gate is complete.
 
 A public beta still requires source, third-party license and package-content review, a reviewed commit/tag, an artifact manifest and SHA-256 checksums.
 

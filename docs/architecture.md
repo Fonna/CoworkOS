@@ -49,7 +49,7 @@ Pi 的 `before_agent_start` 在首轮请求前发现绑定应用与工具，`con
 
 QuickJS 保存当前 Pi 会话的脚本 state，经受限 dispatcher 逐次调用已启用的原生/浏览器工具，原工具继续负责权限、参数及 Task 归属。切会话/shutdown 清空 VM 并关闭浏览器，图片和已接受下载留在 Task；持久工具选择只恢复可用组。应用专属操作继续由既有 Adapter 提供。接口和边界见 [视觉观察](visual-observation.md)、[Browser Use](browser-use.md) 与 [CUA 脚本](cua-scripting.md)。
 
-Main/Watch Supervisor、持久 Inbox、长期目标和显式 Virtual Agent 激活已存在。目标保存计划、事实、等待条件和汇报偏好，一个目标可关联多个 Watcher；普通回复结束不等于目标完成。应用内动态、未读和定期汇总已接入，更多真实来源、系统通知和连续运行评测仍见 [路线图](../ROADMAP.md)。
+Main/Watch Supervisor、持久 Inbox、长期目标和显式 Virtual Agent 激活已存在。目标保存计划、事实、等待条件和汇报偏好，一个目标可关联多个 Watcher；普通回复结束不等于目标完成。应用内动态、未读和定期汇总已接入，更多真实来源、系统通知和连续运行评测仍待独立验收。
 
 ## 长期目标、监控与暂停
 
@@ -91,4 +91,4 @@ Composer Session 按会话保存草稿与已验证附件，发送捕获原 Task�
 - `GrantedPermissions` 覆盖软件 v2/GUI 宿主授权，不证明 Pi bash/jobs 全部受 OS 沙箱隔离。统一执行隔离需要单独实现和验证。
 - App 的目标平台为 Apple Silicon Mac；Windows/Linux GUI 驱动、远程 Worker、多用户隔离和无人值守更新尚未交付。
 
-修改接口时同步生产者和消费者、兼容/恢复文档与行为测试。主责角色见 [所有权表](module-ownership.md)，PR 规则见 [CONTRIBUTING](../CONTRIBUTING.md)，公开发布门槛见 [ROADMAP](../ROADMAP.md#p0公开发布门槛) 和 [Mac 发布指南](mac-release.md)。
+修改接口时同步生产者和消费者、兼容/恢复文档与行为测试。主责角色见 [所有权表](module-ownership.md)，PR 规则见 [CONTRIBUTING](../CONTRIBUTING.md)，公开发布门槛见 [贡献约定](../CONTRIBUTING.md#pr审阅与发布) 和 [Mac 发布指南](mac-release.md)。

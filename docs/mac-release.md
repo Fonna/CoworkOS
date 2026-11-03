@@ -2,7 +2,7 @@
 
 [English](en/mac-release.md) | 中文
 
-当前 App 目标是 macOS 14+、Apple Silicon（arm64）Mac。Electron 自带运行时，用户无需 Node、npm 或仓库源码。当前未提供 Developer ID 签名、公证或 Intel 构建；更新安装方式取决于包签名与已发布更新源。候选包与 Release 说明必须明确这些限制。支持范围见 [路线图](../ROADMAP.md)，用户安装与配置见 [安装指南](getting-started.md) 和 [配置指南](configuration.md)。
+当前 App 目标是 macOS 14+、Apple Silicon（arm64）Mac。Electron 自带运行时，用户无需 Node、npm 或仓库源码。当前未提供 Developer ID 签名、公证或 Intel 构建；更新安装方式取决于包签名与已发布更新源。候选包与 Release 说明必须明确这些限制。用户安装与配置见 [安装指南](getting-started.md) 和 [配置指南](configuration.md)。
 
 ## 构建候选包
 
@@ -10,7 +10,7 @@
 
 ```sh
 npm ci
-npm run verify
+npm run verify:full
 npx playwright install chromium
 npm run test:browser
 npm run desktop:pack
@@ -120,7 +120,7 @@ ATRIA_COMPONENT_SOURCES_DIR=.tmp/component-sources npm run components:publish
 
 发布顺序为：先完成本地回归，再推送与 `package.json` 完全一致的 `vX.Y.Z` tag；在该 tag 的干净检出运行 `npm ci` 和 `npm run release:local -- vX.Y.Z`。审查草稿中的 Mac、CLI、组件及 npm 候选资产，然后手动运行 Publish npm packages。保留 npm Trusted Publishing Environment 的 Required reviewers；核对 npm 发布成功后，再手动发布 GitHub Release。公开分发 Release 与更新指针若本版本需要，也按下文步骤单独验收和发布。版本一旦发布不可覆盖；下一个公开版本须递增。
 
-npm 接收上传后可能仍需处理，匿名查询会暂时返回 404。发布 workflow 会重试查询并核对两个包的 SHA-512 与候选一致；若处理仍未完成，从 `main` 运行同一 workflow，填相同 tag 并勾选 `verify_only`，只验证已接收的包，不再次发布。
+npm 接收上传后可能仍需处理，匿名查询会暂时返回 404。发布 workflow 会重试查询并核对两个包的 SHA-512 与候选一致；若处理仍未完成，从 `main` 运行同一 workflow，填相同 tag 并勾选 `verify_only`，只验证已接收的包，不再次发布。`verify_only` 可读取草稿或已公开 Release 的固定附件，继续核对 tag 提交、候选包校验值和 npm SHA-512；普通发布仍要求草稿。历史失败运行的红叉会保留，应查看后续验证运行的结果。
 
 本地也可分别生成 npm 候选包进行验收：
 

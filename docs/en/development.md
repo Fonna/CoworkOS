@@ -2,7 +2,7 @@
 
 English | [中文](../development.md)
 
-Start with [AGENTS](../../AGENTS.en.md), [architecture](architecture.md) and the [code map](code-map.md). Follow [CONTRIBUTING](../../CONTRIBUTING.en.md); select work from [ROADMAP](../../ROADMAP.en.md).
+Start with [AGENTS](../../AGENTS.en.md), [architecture](architecture.md) and the [code map](code-map.md). Follow [CONTRIBUTING](../../CONTRIBUTING.en.md).
 
 ## Environment
 
@@ -25,7 +25,7 @@ Document attachment tests need Python 3.11 and PDF/Office parsing dependencies. 
 ```sh
 python3.11 -m venv .tmp/document-python
 .tmp/document-python/bin/python -m pip install -r scripts/document-requirements.txt
-COWORK_PYTHON="$PWD/.tmp/document-python/bin/python" npm run verify
+COWORK_PYTHON="$PWD/.tmp/document-python/bin/python" npm run verify:full
 ```
 
 ## Isolated development data
@@ -92,7 +92,7 @@ The update implementations are [source transaction](../../scripts/update-source.
 1. Find the behavior owner, consumers and tests in the code map; read target-directory `AGENTS.md`.
 2. Reproduce in a temporary workspace and run relevant tests. Fix the owning service/adapter/controller; entrypoints compose dependencies.
 3. Add behavior coverage for the failure/new user flow. Async changes cover identity, cancellation, late responses, conflicts and exit/recovery; protocol changes cover both ends.
-4. Run focused tests, then one `npm run verify`. Apply browser/native/package gates below where relevant.
+4. Run focused tests and lightweight `npm run verify`; documentation-only edits need link/format checks. Use `npm run verify:full` for releases or broad changes, plus relevant browser/native/package acceptance.
 5. Update the code map, current documentation and roadmap status. Report actual commands, results, skips and remaining limits.
 
 ```sh
@@ -106,19 +106,20 @@ npm run verify
 
 ## Validation layers
 
-| Command                                                   | Scope                                                                                                                                               | When                                                                                  |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `npm run test:unit -- --file test/name.test.js`           | Focused Node behavior/protocol/lifecycle tests; builds by default                                                                                   | Fast feedback during a change                                                         |
-| `npm run verify`                                          | One complete build, source hygiene, lint, workbench/Pi types, incremental format, docs links, release-runner self-test and ordinary Node regression | Default completed-change gate                                                         |
-| `npm test` / `npm run check`                              | Existing Node regression / build and static checks                                                                                                  | Existing local scripts; no need to repeat after equivalent verify on unchanged source |
-| `npm run check:ci`                                        | CLI build, source hygiene, lint, workbench/Pi types, incremental format and docs links                                                              | Manual GitHub checks; local verify/relevant tests remain the completion gate          |
-| `npm run check:source`                                    | Current tracked and nonignored source files; private settings, credentials, personal paths and unwanted outputs/retired docs                        | Before committing or distributing; Git history is outside its scope                   |
-| `npm run check:docs`                                      | Maintained local Markdown file links/heading anchors; no external requests                                                                          | Documentation/path edits; `-- --list` prints scope                                    |
-| `npx playwright install chromium`                         | Chromium preparation                                                                                                                                | First browser run                                                                     |
-| `npm run test:browser`                                    | Chromium/Electron user flows; native branches have prerequisites                                                                                    | UI, HTTP/UI integration, drafts, navigation, collaboration                            |
-| `npm run desktop:pack` then `npm run test:desktop`        | Relocated packaged App, settings, real Pi/local model, exit/restart/simulated upgrade                                                               | Desktop host/lifetime/package changes                                                 |
-| `npm run test:release -- --list` / `npm run test:release` | Five release sections with version/logs/skips/manual items                                                                                          | Release candidate; explicitly enable native/package stages                            |
-| `npm run smoke:coding` / `npm run smoke:multi-subagent`   | Actual endpoint and delegation; consumes model quota                                                                                                | Real service/capability acceptance after configuring a connection                     |
+| Command                                                   | Scope                                                                                                                        | When                                                                                       |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm run test:unit -- --file test/name.test.js`           | Focused Node behavior/protocol/lifecycle tests; builds by default                                                            | Fast feedback during a change                                                              |
+| `npm run verify`                                          | CLI build, source hygiene, lint, workbench/Pi types, incremental format and docs links; no behavioral tests                  | Default completed-change gate                                                              |
+| `npm run verify:full`                                     | One complete build, static checks, release-runner self-tests and the full Node suite                                         | Release acceptance or changes with broad impact                                            |
+| `npm test` / `npm run check`                              | Existing Node regression / build and static checks                                                                           | Existing local scripts; no need to repeat after equivalent verify:full on unchanged source |
+| `npm run check:ci`                                        | CLI build, source hygiene, lint, workbench/Pi types, incremental format and docs links                                       | Manual GitHub checks; local verify/relevant tests remain the completion gate               |
+| `npm run check:source`                                    | Current tracked and nonignored source files; private settings, credentials, personal paths and unwanted outputs/retired docs | Before committing or distributing; Git history is outside its scope                        |
+| `npm run check:docs`                                      | Maintained local Markdown file links/heading anchors; no external requests                                                   | Documentation/path edits; `-- --list` prints scope                                         |
+| `npx playwright install chromium`                         | Chromium preparation                                                                                                         | First browser run                                                                          |
+| `npm run test:browser`                                    | Chromium/Electron user flows; native branches have prerequisites                                                             | UI, HTTP/UI integration, drafts, navigation, collaboration                                 |
+| `npm run desktop:pack` then `npm run test:desktop`        | Relocated packaged App, settings, real Pi/local model, exit/restart/simulated upgrade                                        | Desktop host/lifetime/package changes                                                      |
+| `npm run test:release -- --list` / `npm run test:release` | Five release sections with version/logs/skips/manual items                                                                   | Release candidate; explicitly enable native/package stages                                 |
+| `npm run smoke:coding` / `npm run smoke:multi-subagent`   | Actual endpoint and delegation; consumes model quota                                                                         | Real service/capability acceptance after configuring a connection                          |
 
 Ordinary Node regression defers explicit native desktop/CUA entrypoints and prints reasons. Optional engines may still produce TAP skips. See [local testing](testing-local-run.md) for prerequisites/reports/native commands. Local fixtures validate Pi protocol/lifecycle, not real model capability. Browser passing does not establish clean-machine installation. [package.json](../../package.json) and runners own exact scope.
 
@@ -167,7 +168,7 @@ Keep one long-lived main branch; temporary feature/fix branches merge through PR
 
 [Default workflow](../../.github/workflows/test.yml) is manual-only, using one Ubuntu + Node 24 job. Pushes and PRs do not automatically run static checks. Dependency installation skips the Electron binary, then runs `npm run check:ci`: `build:cli`, source hygiene, lint, workbench/Pi types, incremental formatting and maintained documentation links.
 
-Complete Node regression, browser, native engines, actual models and package experience are validated locally. `npm run verify` remains the ordinary completed-change gate; add relevant acceptance layers and include evidence in the PR. Manual routine GitHub checks provide build/static feedback.
+Complete Node regression, browser, native engines, actual models and package experience are validated locally. Use lightweight `npm run verify` and focused tests for daily changes, and `npm run verify:full` for releases or broad changes; add relevant acceptance layers and include evidence in the PR. Manual routine GitHub checks provide build/static feedback.
 
 [Internal Mac package](../../.github/workflows/internal-mac.yml) is manual and only builds/uploads an arm64 internal DMG/checksum. [Release Mac DMG](../../.github/workflows/release-mac.yml) builds DMG/CLI candidates and checksums on a version-tag push and uploads a GitHub Release draft for maintainer review and Publish. A ZIP, checksum and Mac update feed are generated only with explicitly configured and verified Developer ID signing. Neither workflow runs full regression, browser or desktop smoke; the default configuration remains an unsigned arm64 candidate. Install and validate candidates locally using the [Mac release guide](../mac-release.md). Release candidates require installation and actual-task acceptance; branch protection requires separate configuration.
 

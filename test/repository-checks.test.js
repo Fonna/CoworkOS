@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkDocumentation, markdownAnchors } from "../scripts/check-docs.mjs";
 import { cleanCompiled } from "../scripts/clean-compiled.mjs";
-import { verify, verificationScripts } from "../scripts/verify.mjs";
+import { verify, verificationScripts, fullVerificationScripts } from "../scripts/verify.mjs";
 
 async function fixture(callback) {
   const root = await mkdtemp(join(tmpdir(), "atria-repository-check-"));
@@ -162,7 +162,7 @@ test("formatter excludes retained staged deletions locally and against a commit 
   });
 });
 
-test("verify builds exactly once, retains all gates and stops on the first nonzero check", async () => {
+test("verify defaults to CLI build and static checks without launching the full regression", async () => {
   const calls = [];
   assert.equal(
     await verify([], async (_command, args) => {
@@ -172,28 +172,53 @@ test("verify builds exactly once, retains all gates and stops on the first nonze
     0
   );
   assert.deepEqual(
-    calls.slice(0, -1).map((args) => args[1]),
+    calls.map((args) => args[1]),
     verificationScripts
   );
-  assert.equal(calls.filter((args) => args[1] === "build:full").length, 1);
-  assert.deepEqual(calls.at(-1), ["scripts/test.mjs"]);
-  const stopped = [];
-  assert.equal(
-    await verify([], async (_command, args) => {
-      stopped.push(args);
-      return args[1] === "lint" ? 7 : 0;
-    }),
-    7
-  );
-  assert.equal(stopped.length, 2);
-  await assert.rejects(() => verify(["--skip-build"]), /only --list or --help/);
+  assert.equal(calls.filter((args) => args[1] === "build:cli").length, 1);
+  assert.ok(calls.every((args) => args[0] === "run"));
+  assert.ok(!calls.some((args) => args[1] === "build:full" || args[1] === "test:release:runner"));
 });
 
-test("verify --list plans without executing a child process", async () => {
+test("verify --full builds all assets once and retains runner and Node regression checks", async () => {
+  const calls = [];
   assert.equal(
-    await verify(["--list"], async () => {
-      throw new Error("must not execute");
+    await verify(["--full"], async (_command, args) => {
+      calls.push(args);
+      return 0;
     }),
     0
   );
+  assert.deepEqual(
+    calls.slice(0, -1).map((args) => args[1]),
+    fullVerificationScripts
+  );
+  assert.equal(calls.filter((args) => args[1] === "build:full").length, 1);
+  assert.equal(calls.filter((args) => args[1] === "test:release:runner").length, 1);
+  assert.deepEqual(calls.at(-1), ["scripts/test.mjs"]);
+});
+
+test("both verification modes stop on the first nonzero check", async () => {
+  for (const mode of [[], ["--full"]]) {
+    const stopped = [];
+    assert.equal(
+      await verify(mode, async (_command, args) => {
+        stopped.push(args);
+        return args[1] === "lint" ? 7 : 0;
+      }),
+      7
+    );
+    assert.equal(stopped.length, 2);
+  }
+  await assert.rejects(() => verify(["--skip-build"]), /accepts --full, --list or --help/);
+});
+
+test("verify --list plans either mode without executing a child process", async () => {
+  for (const mode of [["--list"], ["--full", "--list"]])
+    assert.equal(
+      await verify(mode, async () => {
+        throw new Error("must not execute");
+      }),
+      0
+    );
 });

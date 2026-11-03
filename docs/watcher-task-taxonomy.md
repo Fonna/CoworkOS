@@ -156,4 +156,4 @@ Session 归属表示处理结果的目标，不要求模型一直活跃。原 Se
 - 作者编写、校验和显式登记的流程见 [Virtual Agent 作者技能](../.pi/skills/virtual-agent-authoring/SKILL.md)。
 - 跨运行保存、休眠和恢复的背景见 [长程任务设计](long-running-agent-design.md)。
 
-执行合约、会话/后台归属和管理页面见 [目标架构](long-term-goals-architecture.md)。动态冷热频率、Embedding 筛选与更广的真实来源适配仍为扩展方向，不因本页列出就视为已支持；范围和验收见 [路线图](../ROADMAP.md)。
+执行合约、会话/后台归属和管理页面见 [目标架构](long-term-goals-architecture.md)。动态冷热频率、Embedding 筛选与更广的真实来源适配仍为扩展方向，不因本页列出就视为已支持。

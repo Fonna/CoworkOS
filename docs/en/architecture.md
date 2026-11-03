@@ -81,7 +81,7 @@ Desktop ports change between launches, so origin localStorage alone cannot resto
 - `GrantedPermissions` covers software v2/GUI host grants; it does not prove Pi bash/jobs are confined by a universal OS sandbox.
 - The App targets Apple Silicon Mac. Windows/Linux GUI drivers, remote workers, multiple users and unattended updates are not shipped.
 
-Update producers, consumers, compatibility/recovery docs and behavior tests together. Review roles are in [module ownership](../module-ownership.md) (Chinese); PR requirements are in [CONTRIBUTING](../../CONTRIBUTING.en.md). Public gates are in [ROADMAP](../../ROADMAP.en.md#p0-public-release-gates) and the [Mac release guide](../mac-release.md) (Chinese).
+Update producers, consumers, compatibility/recovery docs and behavior tests together. Review roles are in [module ownership](../module-ownership.md) (Chinese); PR requirements are in [CONTRIBUTING](../../CONTRIBUTING.en.md). Public gates are in [contribution requirements](../../CONTRIBUTING.en.md#pr-review-and-release) and the [Mac release guide](../mac-release.md) (Chinese).
 
 ## Durable goals, monitoring and pause
 

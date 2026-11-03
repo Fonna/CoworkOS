@@ -76,7 +76,7 @@ test("local release refuses to run on a non-Apple-Silicon host before invoking c
   assert.equal(invoked, false);
 });
 
-test("npm publisher downloads only the matching draft assets and verifies their checksums and manifests", async (t) => {
+test("npm publisher requires a draft and permits published assets only for verification with intact checksums", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "coworkos-npm-assets-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const payloads = new Map();
@@ -139,5 +139,28 @@ test("npm publisher downloads only the matching draft assets and verifies their 
   await assert.rejects(
     downloadNpmReleaseAssets({ tag, version, repository: repo, root, commandRunner, binaryRunner }),
     /exactly one draft/
+  );
+  const published = await downloadNpmReleaseAssets({
+    tag,
+    version,
+    repository: repo,
+    root,
+    commandRunner,
+    binaryRunner,
+    allowPublished: true
+  });
+  assert.deepEqual(published.files, result.files);
+  payloads.set(1, Buffer.from("changed published archive"));
+  await assert.rejects(
+    downloadNpmReleaseAssets({
+      tag,
+      version,
+      repository: repo,
+      root,
+      commandRunner,
+      binaryRunner,
+      allowPublished: true
+    }),
+    /checksum differs/
   );
 });

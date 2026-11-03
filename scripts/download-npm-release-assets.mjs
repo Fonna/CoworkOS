@@ -15,6 +15,7 @@ export async function downloadNpmReleaseAssets({
   repository = process.env.GITHUB_REPOSITORY,
   version = process.env.VERSION,
   root = process.cwd(),
+  allowPublished = false,
   commandRunner = execFileSync,
   binaryRunner = spawnSync
 } = {}) {
@@ -30,8 +31,16 @@ export async function downloadNpmReleaseAssets({
     })
   );
   const releases = pages.flat();
-  const matches = releases.filter((release) => release.tag_name === tag && release.draft === true);
-  if (matches.length !== 1) throw new Error("Expected exactly one draft GitHub Release for this tag");
+  const matches = releases.filter(
+    (release) =>
+      release.tag_name === tag && (release.draft === true || (allowPublished && release.draft === false))
+  );
+  if (matches.length !== 1)
+    throw new Error(
+      allowPublished
+        ? "Expected exactly one GitHub Release for this tag"
+        : "Expected exactly one draft GitHub Release for this tag"
+    );
   const release = matches[0];
   const names = [
     `coworkos-desktop-darwin-arm64-${version}.tgz`,
@@ -45,7 +54,7 @@ export async function downloadNpmReleaseAssets({
     for (const assetName of pair) {
       const assets = release.assets.filter((asset) => asset.name === assetName);
       if (assets.length !== 1 || !Number.isSafeInteger(assets[0].id))
-        throw new Error(`Draft release is missing a unique asset: ${assetName}`);
+        throw new Error(`Release is missing a unique asset: ${assetName}`);
       const path = join(output, assetName);
       const descriptor = openSync(path, "w");
       try {
@@ -60,7 +69,7 @@ export async function downloadNpmReleaseAssets({
           { stdio: ["ignore", descriptor, "inherit"] }
         );
         if (result.error) throw result.error;
-        if (result.status !== 0) throw new Error(`Unable to download draft release asset: ${assetName}`);
+        if (result.status !== 0) throw new Error(`Unable to download release asset: ${assetName}`);
       } finally {
         closeSync(descriptor);
       }
@@ -116,7 +125,7 @@ export async function downloadNpmReleaseAssets({
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
   try {
-    const result = await downloadNpmReleaseAssets();
+    const result = await downloadNpmReleaseAssets({ allowPublished: process.env.VERIFY_ONLY === "true" });
     console.log(`Downloaded and verified npm archives: ${result.files.join(", ")}`);
   } catch (error) {
     console.error(error.message);

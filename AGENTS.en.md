@@ -8,7 +8,7 @@ This guide is for contributors and coding agents. Users start with [README](READ
 
 1. Use the [code map](docs/en/code-map.md) to find the implementation owner, consumers and tests before adding branches to entrypoints.
 2. Read the target directory's `AGENTS.md`; read both sides when crossing directories.
-3. Code, tests and [architecture](docs/en/architecture.md) define current behavior. Use the [roadmap](ROADMAP.en.md) to choose work.
+3. Code, tests and [architecture](docs/en/architecture.md) define current behavior. Choose work from current issues and acceptance criteria.
 4. Reproduce the problem, edit the owning module, run relevant behavior tests and local verification, then report commands, failures and skips actually observed.
 
 ## Repository map
@@ -57,9 +57,9 @@ Avoid unnecessary secondary labels, explanations, helper copy, descriptions and 
 
 ## Verification and delivery
 
-Use Node >=22.19.0 and `npm ci`. `npm run verify` builds once, then runs source hygiene, static checks and deterministic Node regressions. `npm run test:unit -- --match model` selects test files; `npm run check:docs` checks documentation links; `npm run check:source` checks current source for private configuration, credentials, personal paths and generated/retired documents. See [local testing](docs/en/testing-local-run.md) for the full command inventory. Test doubles do not replace lifecycle tests; browser, native, real-model and clean-install evidence are separate.
+Use Node >=22.19.0 and `npm ci`. Match validation to the change: documentation-only edits run `check:docs` and `format:check`; behavior changes run related tests and lightweight `npm run verify` (CLI build, source hygiene and static checks). Explicitly run `npm run verify:full` for release acceptance or changes with broad impact; it performs a complete build, release-runner self-tests and the full deterministic Node suite. Do not repeat the full suite for every small edit. `npm run test:unit -- --match model` selects test files; `npm run check:docs` checks documentation links; `npm run check:source` checks current source for private configuration, credentials, personal paths and generated/retired documents. See [local testing](docs/en/testing-local-run.md) for the full command inventory. Test doubles do not replace lifecycle tests; browser, native, real-model and clean-install evidence are separate.
 
-Routine GitHub checks are manual-only and do not run automatically on pushes or PRs. They execute the lightweight static checks in `npm run check:ci`. Run complete regressions and release acceptance locally and record evidence. The Mac version-tag workflow builds and uploads to a draft Release; see the [Mac release guide](docs/mac-release.md). CI passing does not mean the complete test suite passed; do not add browser, native or cross-platform test matrices by default.
+Routine GitHub checks are manual-only and do not run automatically on pushes or PRs. They execute the lightweight static checks in `npm run check:ci`. Run complete regressions and release acceptance locally and record evidence. The manually triggered Mac workflow builds and uploads to a draft Release; see the [Mac release guide](docs/mac-release.md). CI passing does not mean the complete test suite passed; do not add browser, native or cross-platform test matrices by default.
 
 Change descriptions include the problem and resulting behavior, affected modules/interfaces, checks run and unverified scope. Update the relevant guide and code map when changing commands, features, paths or interfaces. The roadmap records status, next work and acceptance criteria.
 

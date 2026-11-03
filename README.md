@@ -5,7 +5,6 @@
   </picture>
 </p>
 
-
 <!-- Add the paper and discussions URLs when available. -->
 <p align="center">
   <img src="docs/assets/badges/paper.svg" alt="Paper · arXiv">
@@ -29,11 +28,9 @@
 - **Shared applications and evolving artifacts.** CLI, search, files and MCP connect with document editors, presentations, CAD and Blender. People and agents can work on the same documents, models and scenes, with hierarchical workspaces, semantic memory and revision-aware candidate changes supporting review before integration.
 - **A foundation for agent-driven research.** The same mechanisms support monitoring-heavy loops such as RSI-native model post-training: analyze failures, improve data, run training, validate results and iterate while retaining state and evidence. In the accompanying study, five rounds raised Qwen3.6-35B-A3B's average score from 33.19 to 42.95 across eight benchmarks.
 
-
 <p align="center">
   <img src="docs/assets/readme-workspace.gif" alt="CoworkOS workspace showing a collaborative turbofan CAD task" width="100%">
 </p>
-
 
 ## Install
 
@@ -62,15 +59,14 @@ coworkos
 
 ## Documentation and contributing
 
-| Guide                                                               | Description                                                  |
-| ------------------------------------------------------------------- | ------------------------------------------------------------ |
-| [User guide](docs/en/README.md)                                     | Install CoworkOS, configure models, and explore workflows    |
-| [Model settings](docs/en/configuration.md)                          | Configure provider routes, model IDs, and connection formats |
-| [Updates and troubleshooting](docs/en/installation-reference.md)    | Updates, backup, recovery, and installation troubleshooting  |
-| [Development](docs/en/development.md)                               | Build Web/Desktop/CLI and run local checks                   |
-| [Contributing](CONTRIBUTING.en.md)                                  | Contribution workflow and validation                         |
-| [Roadmap](ROADMAP.en.md)                                            | Current capabilities, release gates, and planned work        |
-| [Report an issue](https://github.com/RUC-NLPIR/CoworkOS/issues) | Report bugs or request changes                               |
+| Guide                                                            | Description                                                  |
+| ---------------------------------------------------------------- | ------------------------------------------------------------ |
+| [User guide](docs/en/README.md)                                  | Install CoworkOS, configure models, and explore workflows    |
+| [Model settings](docs/en/configuration.md)                       | Configure provider routes, model IDs, and connection formats |
+| [Updates and troubleshooting](docs/en/installation-reference.md) | Updates, backup, recovery, and installation troubleshooting  |
+| [Development](docs/en/development.md)                            | Build Web/Desktop/CLI and run local checks                   |
+| [Contributing](CONTRIBUTING.en.md)                               | Contribution workflow and validation                         |
+| [Report an issue](https://github.com/RUC-NLPIR/CoworkOS/issues)  | Report bugs or request changes                               |
 
 ## Acknowledgments and license
 

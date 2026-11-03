@@ -12,8 +12,6 @@ export const maintainedDocumentation = [
   "AGENTS.en.md",
   "CONTRIBUTING.md",
   "CONTRIBUTING.en.md",
-  "ROADMAP.md",
-  "ROADMAP.en.md",
   "docs/README.md",
   "docs/getting-started.md",
   "docs/cli-quickstart.md",

@@ -3,29 +3,34 @@ import { pathToFileURL } from "node:url";
 import { repositoryRoot, runCommand } from "./test.mjs";
 
 export const verificationScripts = [
-  "build:full",
+  "build:cli",
   "lint",
   "check:workbench",
   "check:extensions",
   "format:check",
   "check:docs",
-  "check:source",
-  "test:release:runner"
+  "check:source"
 ];
 
+export const fullVerificationScripts = ["build:full", ...verificationScripts.slice(1), "test:release:runner"];
+
 export async function verify(args = process.argv.slice(2), run = runCommand) {
-  if (args.some((argument) => argument !== "--list" && argument !== "--help" && argument !== "-h"))
-    throw new Error("verify accepts only --list or --help; use test:unit for focused checks");
+  if (args.some((argument) => !["--full", "--list", "--help", "-h"].includes(argument)))
+    throw new Error("verify accepts --full, --list or --help; use test:unit for focused checks");
+  const full = args.includes("--full");
+  const scripts = full ? fullVerificationScripts : verificationScripts;
   const steps = [
-    ...verificationScripts.map((script) => ({
+    ...scripts.map((script) => ({
       command: process.platform === "win32" ? "npm.cmd" : "npm",
       args: ["run", script]
     })),
-    { command: process.execPath, args: ["scripts/test.mjs"] }
+    ...(full ? [{ command: process.execPath, args: ["scripts/test.mjs"] }] : [])
   ];
-  if (args.length) {
+  if (args.some((argument) => ["--list", "--help", "-h"].includes(argument))) {
     console.log(
-      "Local verification builds once, checks lint/types/changed-file format/docs/source hygiene, then runs all deterministic Node tests."
+      full
+        ? "Full verification builds all assets once, runs static checks, release-runner self-tests and all deterministic Node tests."
+        : "Quick verification builds the CLI and runs static checks. Run focused tests for changed behavior; use npm run verify:full for the full suite."
     );
     for (const step of steps) console.log(`${step.command} ${step.args.join(" ")}`);
     console.log(
@@ -39,7 +44,9 @@ export async function verify(args = process.argv.slice(2), run = runCommand) {
     if (code !== 0) return code;
   }
   console.log(
-    "\nLocal verification passed. Review skipped Node checks and run the relevant browser/native/release layer."
+    full
+      ? "\nFull verification passed. Review skipped Node checks and run the relevant browser/native/release layer."
+      : "\nQuick verification passed. Behavioral tests were not run; run focused tests for changed behavior."
   );
   return 0;
 }

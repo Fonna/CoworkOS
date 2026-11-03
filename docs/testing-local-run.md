@@ -2,7 +2,7 @@
 
 [English](en/testing-local-run.md) | 简体中文
 
-每次修改完成后，在仓库根目录运行 `npm run verify`。它构建一次，检查代码、类型、变更文件格式和现行文档链接，然后执行发布 runner 自测和完整确定性 Node 回归。浏览器、原生窗口、真实模型和最终安装包分别验收。开发环境与 Python 附件依赖见 [开发指南](development.md)。
+按改动范围选择验证：纯文档修改只需 `npm run check:docs` 和 `npm run format:check`；行为修改运行相关测试及轻量 `npm run verify`。发布验收或影响范围广的修改使用 `npm run verify:full`。浏览器、原生窗口、真实模型和最终安装包分别验收。开发环境与 Python 附件依赖见 [开发指南](development.md)。
 
 ## 日常开发验证
 
@@ -10,15 +10,19 @@
 npm ci
 npm run verify
 
-# 查看完整执行顺序，不构建或运行测试
+# 发布或广泛影响的修改：完整构建和全量回归
+npm run verify:full
+
+# 查看轻量/全量执行顺序，不构建或运行测试
 npm run verify -- --list
+npm run verify:full -- --list
 ```
 
-`verify` 按顺序执行 `build`、`lint`、`check:workbench`、`check:extensions`、`format:check`、`check:docs`、`check:source`、`test:release:runner` 和 Node 测试；第一次失败即停止，并保留原始退出码。不会为每组 Node 测试重复构建。
+`verify` 按顺序执行 `build:cli`、`lint`、`check:workbench`、`check:extensions`、`format:check`、`check:docs` 和 `check:source`，不运行行为测试。`verify:full`（等价于 `verify -- --full`）改用一次 `build:full`，静态检查后再运行 `test:release:runner` 和全量 Node 测试。两种模式均在第一次失败时停止，并保留原始退出码。轻量检查通过不代表相关行为或全量回归通过。
 
 `format:check` 检查当前变更文件；手动 CI 使用 `FORMAT_BASE=HEAD^` 比较上一提交；其他基线可在本地通过 `FORMAT_BASE` 指定。
 
-`check:docs` 检查现行中英文文档和模块 AGENTS 的仓库内文件链接、Markdown 标题锚点，代码示例和外部 URL 不做请求。
+`check:docs` 检查现行中英文文档和模块 AGENTS 的仓库内文件链接、Markdown 标题锚点，代码示例和外部 URL 不做请求。已移除的文档不再列为必需文件；删除文档时须更新引用，残留死链仍会失败。第三方许可链接指向版本固定的上游来源，发行包内许可另按实际产物检查。
 
 `npm run check:source` 扫描当前已跟踪及非忽略的一方文本，拒绝私人路径、凭据形态、数字网关和私有/生成目录，不扫描 Git 历史。
 
@@ -27,6 +31,9 @@ npm run verify -- --list
 开发中先运行相关文件：
 
 ```sh
+# 不依赖编译后运行时的纯脚本测试，无需产品构建
+node --test test/repository-checks.test.js
+
 # 只列出匹配文件，没有匹配会失败
 npm run test:unit -- --list --match application-
 
@@ -41,13 +48,13 @@ npm run test:unit -- --skip-build --file test/text-document-session.test.js --co
 
 `--match` 是区分大小写的文件路径子串，`--file` 是仓库相对的精确源测试路径，两者不能混用。拼错文件或匹配为空时，在构建前退出失败。
 
-Node 测试自动发现 `test/` 下 `.test.js`、`.test.mjs`、`.test.ts`；TypeScript 用例执行其编译结果，p0/p1/p2 保持原脚本断言。发布 runner 在 `test/release/` 中单独运行，`verify` 包含其自测。新测试使用隔离夹具、临时目录和假的模型服务，避免修改真实工作区或调用真实模型。
+Node 测试自动发现 `test/` 下 `.test.js`、`.test.mjs`、`.test.ts`；TypeScript 用例执行其编译结果，p0/p1/p2 保持原脚本断言。发布 runner 在 `test/release/` 中单独运行，`verify:full` 包含其自测。新测试使用隔离夹具、临时目录和假的模型服务，避免修改真实工作区或调用真实模型。
 
 默认 Node 回归明确列出并延后 `computer-native.test.js` 和桌面开发入口的可见窗口重启变体，通过已有发布清单统一控制；即使本机设置了原生测试环境变量，普通入口也关闭该变体。需要真实窗口操作时使用下面的 `--native`。
 
 其他 CAD、Blender、Mac 平台用例仍按自身条件运行或在 TAP 中明确跳过；退出码 0 不代表跳过项已经验证。保存实际测试数和 skip 原因，不能把历史计数作为本次结果。
 
-`npm test` 和 `npm run check` 继续保留，分别用于已有 Node 回归和静态门槛；两者连跑会重复构建，日常完整检查用 `verify`。
+`npm test` 和 `npm run check` 继续保留，分别用于已有 Node 回归和静态门槛；两者连跑会重复构建，显式完整检查用 `verify:full`。
 
 GitHub 常规检查仅手动触发，不随 push/PR 自动执行；手动运行轻量 `npm run check:ci`，只做 CLI 构建、lint、类型、增量格式、文档链接与源码卫生检查。完整 Node、浏览器、原生、实际模型与本页的发布 runner 在本地执行；轻量 CI 通过不代表这些行为已验收。触发范围见 [开发指南](development.md#github-actions)。
 
@@ -121,7 +128,7 @@ npm run test:release -- --native --packages
 # 仅调试已完成的构建；报告明确记录未重新构建
 npm run test:release -- --stage cli --skip-build
 
-# 发布入口自身的回归；verify 包含此步骤，普通 npm test/CI 不自动发现
+# 发布入口自身的回归；verify:full 包含此步骤，普通 npm test/CI 不自动发现
 npm run test:release:runner
 ```
 
