@@ -70,7 +70,7 @@ coworkos
 | [Development](docs/en/development.md)                               | Build Web/Desktop/CLI and run local checks                   |
 | [Contributing](CONTRIBUTING.en.md)                                  | Contribution workflow and validation                         |
 | [Roadmap](ROADMAP.en.md)                                            | Current capabilities, release gates, and planned work        |
-| [Report an issue](https://github.com/ignorejjj/Atria-Cowork/issues) | Report bugs or request changes                               |
+| [Report an issue](https://github.com/RUC-NLPIR/CoworkOS/issues) | Report bugs or request changes                               |
 
 ## Acknowledgments and license
 

@@ -41,9 +41,16 @@ Pi 扩展与子进程使用真实文件路径，打包关闭 asar。白名单排
 
 ## 版本 tag 与 Release 草稿
 
-[Release Mac 工作流](../.github/workflows/release-mac.yml) 在推送 `v<version>` tag（含 beta/rc）时检出该提交，校验 `package.json`、`package-lock.json` 和 tag 的版本一致，使用 macOS 15 arm64、Node 24、uv 构建 DMG/CLI 候选及校验文件，并上传到对应 GitHub Release 草稿，携带发行来源清单、SHA-256 和本版发行说明。显式配置 Developer ID 签名且验证通过时，另上传 ZIP、SHA-256 与 Mac 更新 feed。
+默认流程在本地 Apple Silicon Mac 构建，避免每次版本发布消耗 macOS Actions 分钟。先准备 Node 24、uv、`gh` 登录和依赖，再从干净的版本 tag 检出运行：
 
-它只做版本校验、打包和上传；本地完整回归须在推送前完成。默认测试版使用 ad-hoc 签名、未公证；预发布版本自动标记 Pre-release，工作流不自动发布。
+```sh
+npm ci
+npm run release:local -- v0.1.3
+```
+
+完整本地回归应在建立 tag 前完成。该命令校验 tag、版本和干净工作区，构建 DMG、组件、CLI 与两个 npm 包，生成发行清单和校验文件，并上传 GitHub Release 草稿及 npm 包候选。它会停在可审查的草稿，不会发布 npm 或公开 Release。检查草稿资产后，在 Actions 手动运行 Publish npm packages 并输入同一 tag；npm Environment 的 Required reviewers 仍会照常生效。npm 验证通过后，再手动发布 GitHub Release。tag 推送本身不会触发云端 Mac 重建。默认测试版使用 ad-hoc 签名、未公证；预发布版本自动标记 Pre-release。
+
+[Release Mac 工作流](../.github/workflows/release-mac.yml)保留为手动云端备用流程。它从选定 tag 在 macOS 15 arm64 上重新构建候选，适合本地构建机不可用时使用；手动运行会消耗 macOS Actions 分钟。
 
 以下以 `0.1.2-beta.7` 为例，维护者先审查并提交全部发布所需源码、文档与验证，再建立 tag：
 
@@ -70,7 +77,7 @@ git push origin v0.1.2-beta.7
 
 ## 公开组件发行
 
-大组件与 App 分开发布。组件放在公开的 [Atria-Components](https://github.com/ignorejjj/Atria-Components/releases)；产品代码仓库保持私有，App 从 Atria-Releases 公开分发，也可继续把小 DMG 发到测试群；安装后的组件下载匿名访问独立公开 Release。
+大组件与 App 分开发布。组件放在公开的 [Atria-Components](https://github.com/ignorejjj/Atria-Components/releases)；当前源码仓库公开，App 候选放在 GitHub Release 草稿并由 npm 提供安装/更新。旧客户端的 Atria-Releases 发布流程仅在需要兼容时单独运行；安装后的组件下载匿名访问独立公开 Release。
 
 当前组件协议 v1 固定 `components-v1` tag，清单使用 `hostVersion: "*"` 允许协议兼容的 App 复用。版本清单、归档、大小和 SHA-256 共同绑定发行；不读取任意最新版。更换运行时需发布新 tag 并更新程序内固定来源，不覆盖已发布附件或移动 tag。
 
@@ -107,13 +114,13 @@ ATRIA_COMPONENT_SOURCES_DIR=.tmp/component-sources npm run components:publish
 | `CoworkOS-<version>-mac-arm64.signing.json` 与 `.sha256` | 精确记录候选 App 的签名状态                                |
 | `atria-release-<version>.json` 与 `.sha256`              | 原始私有源码仓库/tag/commit 与发行产物来源记录             |
 
-下一版 npm 安装器和 App 更新包由 [Publish npm packages 工作流](../.github/workflows/publish-npm.yml) 从已存在的版本 tag 构建并发布。平台 tgz 只包含对应 DMG、许可和版本/校验清单；CLI tgz 包含安装器代码。工作流会再次校验 tag、`package.json` 和 lockfile 版本一致，检查对应的 GitHub Release 仍是草稿，完成候选构建后依次发布桌面包和 CLI 包，并用匿名 `npm view` 核对实际发布版本。两个包使用 npm 官方 registry，用户仍可直接运行 `npx coworkos-app@latest` 或 `npm install -g coworkos-app`。
+下一版 npm 安装器和 App 更新包由 [Publish npm packages 工作流](../.github/workflows/publish-npm.yml)发布。它在 Ubuntu runner 校验 tag 和草稿，从草稿下载本地构建的两个 npm 包并核对 SHA-256、包名和版本，然后依次发布桌面包与 CLI 包，再用匿名 `npm view` 验证。不会在 Actions 上安装项目依赖或重建 Mac App。平台 tgz 只包含对应 DMG、许可和版本/校验清单；CLI tgz 包含安装器代码。两个包使用 npm 官方 registry，用户仍可直接运行 `npx coworkos-app@latest` 或 `npm install -g coworkos-app`。
 
 首次启用前，在 npm 的两个包设置中分别配置 Trusted Publisher：仓库填写 `RUC-NLPIR/CoworkOS`，工作流填写 `publish-npm.yml`，Environment 填写 `npm-publish`。GitHub Actions 使用 OIDC，不把 npm token 放进仓库。可在 GitHub 的 `npm-publish` Environment 设置 Required reviewers，发布前由维护者批准；npm 版本一旦发布不可覆盖。
 
-发布顺序为：先推送与 `package.json` 完全一致的 `vX.Y.Z` tag，等待 Release Mac DMG 工作流生成并上传草稿；检查草稿和候选产物后，在 Actions 中运行 Publish npm packages，输入同一个 tag；npm 发布成功后，再手动发布 GitHub Release 草稿。下一个公开版本应递增版本号，例如从现有 `0.1.2` 进入 `0.1.3`，不要尝试覆盖已发布的 `0.1.2`。
+发布顺序为：先完成本地回归，再推送与 `package.json` 完全一致的 `vX.Y.Z` tag；在该 tag 的干净检出运行 `npm ci` 和 `npm run release:local -- vX.Y.Z`。审查草稿中的 Mac、CLI、组件及 npm 候选资产，然后手动运行 Publish npm packages。保留 npm Trusted Publishing Environment 的 Required reviewers；核对 npm 发布成功后，再手动发布 GitHub Release。公开分发 Release 与更新指针若本版本需要，也按下文步骤单独验收和发布。版本一旦发布不可覆盖；下一个公开版本须递增。
 
-本地仍可用以下命令生成候选包进行验收，但正式发布应使用工作流：
+本地也可分别生成 npm 候选包进行验收：
 
 ```sh
 VERSION=0.1.3

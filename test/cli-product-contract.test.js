@@ -517,7 +517,7 @@ test("owned slash commands intercept the submission boundary and generate only l
   assert.ok(!(await readFile(join(f.project, report), "utf8")).includes(f.searchKey));
   await commands.get("atria-changelog").handler("", ctx);
   assert.ok(notifications.some((text) => text.includes("暂无云端")));
-  assert.ok(notifications.some((text) => text.includes("github.com/ignorejjj/Atria-Cowork/issues")));
+  assert.ok(notifications.some((text) => text.includes("github.com/RUC-NLPIR/CoworkOS/issues")));
   assert.ok(notifications.every((text) => !text.includes("pi.dev")));
   for (const mode of ["json", "rpc", "print"]) assert.doesNotThrow(() => adapter.configure({ mode, ui: {} }));
 });

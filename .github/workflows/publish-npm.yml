@@ -18,8 +18,8 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: macos-15
-    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: npm-publish
     env:
       RELEASE_TAG: ${{ inputs.tag }}
@@ -34,7 +34,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: npm
 
       - name: Validate tag and package versions
         id: release
@@ -45,22 +44,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/release-draft.mjs check
 
-      - uses: astral-sh/setup-uv@v6
-
-      - run: npm ci
-
-      - name: Build the Mac candidate and CLI archive
-        run: |
-          npm run desktop:dist
-          npm run cli:pack
-
-      - name: Prepare npm archives
+      - name: Download and validate locally built npm archives
         env:
-          ATRIA_DESKTOP_NPM_PACKAGE_DIR: ${{ github.workspace }}/.tmp/npm-release
-          ATRIA_PACKAGE_DIR: ${{ github.workspace }}/.tmp/npm-release
-        run: |
-          npm run desktop:npm:pack
-          npm run npm:pack
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: node scripts/download-npm-release-assets.mjs
 
       - name: Publish the Mac desktop package
         run: >-

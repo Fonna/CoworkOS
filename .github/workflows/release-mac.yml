@@ -1,7 +1,5 @@
 name: Release Mac DMG
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
     inputs:
       tag:
@@ -52,6 +50,15 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
       - run: npm run cad:setup && npm run build:pptist && npm run components:pack
       - run: npm run cli:pack
+      - name: Prepare npm archives
+        env:
+          ATRIA_DESKTOP_NPM_PACKAGE_DIR: ${{ github.workspace }}/release
+          ATRIA_PACKAGE_DIR: ${{ github.workspace }}/release
+        run: |
+          npm run desktop:npm:pack
+          npm run npm:pack
+          archive="release/coworkos-desktop-darwin-arm64-${{ steps.release.outputs.version }}.tgz"
+          shasum -a 256 "$archive" | awk '{print $1 "  " $2}' > "$archive.sha256"
       - name: Verify artifact provenance and prepare review notes
         run: node scripts/release-artifacts.mjs
       - name: Create draft and upload release packages
@@ -62,6 +69,16 @@ jobs:
           options=()
           if [[ "$REPLACE_NOTES" == "true" ]]; then options+=(--replace-notes); fi
           node scripts/release-draft.mjs upload "${options[@]}"
+      - name: Upload npm archives to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$RELEASE_TAG" \
+            "release/coworkos-desktop-darwin-arm64-${{ steps.release.outputs.version }}.tgz" \
+            "release/coworkos-desktop-darwin-arm64-${{ steps.release.outputs.version }}.tgz.sha256" \
+            "release/coworkos-app-${{ steps.release.outputs.version }}.tgz" \
+            "release/coworkos-app-${{ steps.release.outputs.version }}.tgz.sha256" \
+            --repo "$GITHUB_REPOSITORY" --clobber
       - uses: actions/upload-artifact@v4
         with:
           name: CoworkOS-mac-arm64-${{ steps.release.outputs.version }}

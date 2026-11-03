@@ -38,9 +38,11 @@ Small-package download installation and full-package offline execution require s
 
 ## App tags and draft Releases
 
-The [Mac release workflow](../../.github/workflows/release-mac.yml) checks out a fixed `v<version>` tag and checks package/lock/tag agreement. It builds Mac DMG and CLI candidates on macOS 15 arm64 with Node 24 and uv, then uploads provenance, SHA-256 and release notes to a draft. It does not replace local regressions or publish the App release automatically. Beta/rc tags use Pre-release status.
+The default release builds on a local Apple Silicon Mac to avoid hosted macOS minutes. Complete local regression before tagging, then install dependencies, check out the clean version tag, and run `npm run release:local -- v<version>`. The command validates the tag and versions, builds the DMG, components, CLI and npm archives, and uploads a reviewable Release draft. After reviewing its assets, manually run the lightweight Ubuntu npm OIDC workflow; keep the npm Environment approval, then publish the GitHub Release draft after npm verification. Publish the separate public distribution release/update pointer separately when this version requires it. Pushing a tag does not start a hosted Mac build. Beta/rc tags use Pre-release status.
 
-Review and commit release source, documentation and validation before tagging. Follow the [version process](../beta-release-process.md) (Chinese) and existing release notes. Use a new version to repair an already-published artifact; never overwrite published assets or move a tag. Manual runs can select an existing tag. Internal workflows upload Actions artifacts without creating a public App release.
+The [Mac release workflow](../../.github/workflows/release-mac.yml) remains available as a manual cloud fallback. It rebuilds the candidate on macOS 15 arm64 and consumes hosted macOS minutes.
+
+Review and commit release source, documentation and validation before tagging. Follow the [version process](../beta-release-process.md) (Chinese) and existing release notes. Use a new version to repair an already-published artifact; never overwrite published assets or move a published tag. The npm workflow downloads and verifies locally built npm archives from the draft, publishes them in order, and checks the public registry. Publish the GitHub Release draft after reviewing the npm results and assets.
 
 ## Public component releases
 

@@ -67,7 +67,7 @@ coworkos
 | [开发指南](docs/development.md)                              | 构建 Web/Desktop/CLI 并运行本地检查 |
 | [贡献指南](CONTRIBUTING.md)                                  | 贡献流程和验证要求                  |
 | [路线图](ROADMAP.md)                                         | 当前能力、发布门槛和后续计划        |
-| [反馈问题](https://github.com/ignorejjj/Atria-Cowork/issues) | 报告问题或提出改进建议              |
+| [反馈问题](https://github.com/RUC-NLPIR/CoworkOS/issues) | 报告问题或提出改进建议              |
 
 ## 致谢与许可
 

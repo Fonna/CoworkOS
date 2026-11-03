@@ -60,6 +60,7 @@
     "components:pack:public": "npm run desktop:prepare:full && ATRIA_COMPONENTS_PUBLIC=1 node scripts/package-components.mjs",
     "components:publish": "node scripts/publish-components.mjs",
     "release:publish:public": "node scripts/public-release-publish.mjs",
+    "release:local": "node scripts/release-local.mjs",
     "test:watcher-templates": "node --test test/watcher-templates.test.js",
     "monitor-service": "node scripts/monitor-service.mjs",
     "test:presentation": "node scripts/test.mjs --build --file test/presentation-files.test.js --file test/presentation-layouts.test.js --file test/slide-review.test.js --file test/vision-model.test.js --file test/vision-pi.test.js",
@@ -113,12 +114,12 @@
   "description": "CoworkOS local cowork harness and application workbench",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ignorejjj/Atria-Cowork.git"
+    "url": "git+https://github.com/RUC-NLPIR/CoworkOS.git"
   },
   "bugs": {
-    "url": "https://github.com/ignorejjj/Atria-Cowork/issues"
+    "url": "https://github.com/RUC-NLPIR/CoworkOS/issues"
   },
-  "homepage": "https://github.com/ignorejjj/Atria-Cowork#readme",
+  "homepage": "https://github.com/RUC-NLPIR/CoworkOS#readme",
   "author": "CoworkOS contributors",
   "bin": {
     "coworkos": "scripts/atria.mjs",

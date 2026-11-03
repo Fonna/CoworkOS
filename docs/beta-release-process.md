@@ -1,6 +1,6 @@
 # CoworkOS 测试版与版本管理
 
-CoworkOS 在私有仓库维护源码、反馈、PR 和来源 tag；用户安装包与更新清单发布在独立公开的 Atria-Releases 仓库，只保留 main 一条长期分支。main 保存通过评审和测试的集成代码；用户实际安装的版本以固定 tag 和已发布 Release 为准。最新提交不一定已发版。
+CoworkOS 源码在公开的 [RUC-NLPIR/CoworkOS](https://github.com/RUC-NLPIR/CoworkOS) 仓库维护；版本以固定 tag 和已发布 Release 为准。用户实际安装的版本以已发布包为准，main 上的最新提交不一定已发版。
 
 ## 开发与反馈
 
@@ -30,16 +30,14 @@ GitHub 日常静态检查仍只手动触发；为准确的 PR SHA 运行 check:c
 
 ## 构建与草稿
 
-当前仓库的 tag 自动打包工作流已暂停，避免继续消耗 GitHub Actions 额度。先在本地运行验收和打包，再上传 Release 草稿；额度恢复后由维护者明确决定是否重新启用，不自动重启云端测试。
-
-[Mac 工作流](../.github/workflows/release-mac.yml)由版本 tag 或手动触发，从固定 tag 构建 DMG、CLI tgz 和校验文件。它只创建 Release 草稿，预发布版本自动标记 Pre-release；维护者验收后发布。完整构建与安装边界见 [Mac 发布](mac-release.md)。
+默认发布在 Apple Silicon Mac 本地构建，减少 GitHub Actions 使用量。先完成本地回归，再推送版本 tag；在该 tag 的干净检出运行 `npm ci` 和 `npm run release:local -- v<version>`，生成并上传待审核 Release 草稿及 npm 候选。维护者检查候选后，在 Actions 手动运行 OIDC npm 发布；npm 环境审批、GitHub Release 发布和需要时的公开分发仓库更新仍保留人工步骤。tag 推送不会启动云端 Mac 构建。[Mac 工作流](../.github/workflows/release-mac.yml)仍可手动运行作为云端备用方案，会使用 macOS Actions 分钟。完整构建与安装边界见 [Mac 发布](mac-release.md)。
 
 本地构建包后，生成发行清单与说明：
 
 ```sh
 RELEASE_TAG=v0.1.2-beta.7 node scripts/release-artifacts.mjs
-RELEASE_TAG=v0.1.2-beta.7 GITHUB_REPOSITORY=ignorejjj/Atria-Cowork node scripts/release-draft.mjs check
-RELEASE_TAG=v0.1.2-beta.7 GITHUB_REPOSITORY=ignorejjj/Atria-Cowork node scripts/release-draft.mjs upload
+RELEASE_TAG=v0.1.2-beta.7 GITHUB_REPOSITORY=RUC-NLPIR/CoworkOS node scripts/release-draft.mjs check
+RELEASE_TAG=v0.1.2-beta.7 GITHUB_REPOSITORY=RUC-NLPIR/CoworkOS node scripts/release-draft.mjs upload
 ```
 
 清单为 release/atria-release-<version>.json，记录 schemaVersion、version、prerelease、source.repository/commit/tag、generatedAt、实际 Mac 签名状态及每个产物的 name/size/sha256，附同名校验文件。签名报告 CoworkOS-<version>-mac-arm64.signing.json 及其 SHA-256 一起分发。说明为 release/atria-release-<version>.md，优先采用 docs/releases/<version>.md，再附自动生成的源码与清单链接。
@@ -58,6 +56,6 @@ RELEASE_TAG=v0.1.2-beta.7 GITHUB_REPOSITORY=ignorejjj/Atria-Cowork node scripts/
 
 公开 beta 发布前核对源代码和第三方对应源码可访问、许可文件完整、发行包不含用户配置/任务，并记录实际安装与模型任务的验收状态。版本说明分开列出已完成和待人工验收项，声明未经真实模型、录音或干净机器验收的范围；协议夹具不能代替这些结果。正式/稳定版承诺须完成 [P0 门槛](../ROADMAP.md#p0公开发布门槛)。
 
-源码仓库继续私有，公开 [Atria-Releases](https://github.com/ignorejjj/Atria-Releases/releases) 仅保存安装包、对应校验和与更新清单。普通用户不需要源码仓库权限、GitHub 登录、邀请码或 token。
+公开源码仓库提供代码与 Release 候选；npm 是当前 CLI 和 Mac App 安装/更新渠道。旧客户端使用的 [Atria-Releases](https://github.com/ignorejjj/Atria-Releases/releases) 保留历史安装包与兼容更新清单。普通用户安装 npm 版本不需要仓库凭据。
 
 发布器验证固定来源 tag 与白名单产物，先核对服务端 digest 再发布，并通过内容 SHA 比较更新当前版本指针；流程见 [Mac 发布](mac-release.md)。公开组件与第三方对应源码材料独立保存在 [Atria-Components](https://github.com/ignorejjj/Atria-Components/releases)。反馈仍由维护者在私有项目管理，公开下载不会自动授予源码访问权。
