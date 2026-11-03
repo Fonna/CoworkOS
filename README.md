@@ -71,3 +71,33 @@ coworkos
 ## Acknowledgments and license
 
 CoworkOS is licensed under [MIT](LICENSE).
+
+
+## Citation
+
+If you find CoworkOS useful in your research or product work, please cite:
+
+```bibtex
+@misc{jin2026coworkos,
+  title         = {CoworkOS: Scaling Agent Coworkers for Real-world Automation},
+  author        = {Jiajie Jin and Guanting Dong and Chengjun Pan and Xin Deng and Zhuohui Sheng and Guoqiang Wang and Tao Gui and Yutao Zhu and Yujia Chen and Shihong Yi and Binze Hu and Zhixiong Yang and Zhichao Sun and Rui Wang and Han Han and Mingyu Ma and Junhao Huang and Xiaotao Wang and Huicheng Jiang and Yuyang Hu and Xinyu Yang and Wanghan Xu and Yajie Yang and Zhecan Wang and Honglin Guo and Xiaoyu Xing and Xiaoqian Zhang and Yulun Zhu and Xiaoxi Li and Jiahang Lin and Shaofan Liu and Shihan Dou and Zhiheng Xi and Qi Zhang and Yu-Gang Jiang and See-Kiong Ng and Yang Zhang and Tat-Seng Chua and Ji-Rong Wen and Zhicheng Dou},
+  year          = {2026},
+  eprint        = {2611.03178},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url           = {https://arxiv.org/abs/2611.03178}
+}
+```
+
+Paper: [arXiv:2611.03178](https://arxiv.org/abs/2611.03178) · Project page: [coworkos-ai.github.io](https://coworkos-ai.github.io/)
+
+## WeChat Group
+
+有任何问题欢迎扫码进群讨论 👏  
+安装踩坑、模型配置、工作流复现、issue 反馈都可以在群里直接问。
+
+<p align="center">
+  <img width="320" alt="CoworkOS WeChat Group QR code" src="https://github.com/user-attachments/assets/2ab9ec2e-1b9d-464a-ba5e-56a59112c345" />
+</p>
+
+> 二维码失效时，请到 [Discussions](https://github.com/RUC-NLPIR/CoworkOS/discussions) 或开 [Issue](https://github.com/RUC-NLPIR/CoworkOS/issues) 联系我们，我们会尽快更新。
