@@ -1,0 +1,6 @@
+# Document attachment extraction and PDF rendering; verified with Python 3.11.
+PyMuPDF==1.26.5
+pypdf==6.12.2
+python-docx==1.2.0
+python-pptx==1.0.2
+openpyxl==3.1.5

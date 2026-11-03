@@ -1,0 +1,266 @@
+/* Brief application dialogs share the same surfaces and controls as settings. */
+html[data-theme] :is(.modal-backdrop, .search-overlay) {
+  background: #0006;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:where(.modal-card) :where(button, input, select, textarea) {
+  font: 400 var(--ui-type-control)/1.5 var(--ui-font);
+}
+.modal-backdrop.app-dialog-backdrop {
+  padding: 24px 16px;
+  background: #0006;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.app-dialog:is(.modal-card, .editor-name-form) {
+  --dialog-field-bg: color-mix(in srgb, var(--ui-raised), var(--ui-panel) 25%);
+  box-sizing: border-box;
+  width: min(var(--dialog-width, 420px), calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  min-width: 0;
+  padding: 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: 24px;
+  color: var(--ui-text);
+  background: var(--ui-panel);
+  box-shadow: 0 24px 72px light-dark(#00000026, #00000066);
+  text-align: left;
+}
+.app-dialog h2 {
+  margin: 0 0 8px;
+  color: var(--ui-text);
+  font: 500 18px/1.4 var(--ui-font);
+  letter-spacing: normal;
+}
+.app-dialog .dialog-description,
+.app-dialog .dialog-help {
+  margin: 0;
+  color: var(--ui-muted);
+  font: 400 var(--ui-type-caption)/1.65 var(--ui-font);
+  overflow-wrap: anywhere;
+}
+.app-dialog .dialog-description {
+  margin-bottom: 22px;
+}
+.app-dialog .dialog-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: var(--ui-secondary);
+  font: 400 var(--ui-type-caption)/1.5 var(--ui-font);
+}
+.app-dialog .dialog-field + .dialog-field {
+  margin-top: 16px;
+}
+.app-dialog .dialog-field > label {
+  font: inherit;
+}
+.app-dialog :is(input, textarea, select):not(:where([type="checkbox"], [type="radio"])) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  outline: 0;
+  color: var(--ui-text);
+  background: var(--dialog-field-bg);
+  font: 400 var(--ui-type-control)/1.5 var(--ui-font);
+}
+.app-dialog textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+.app-dialog :is(input, textarea)::placeholder {
+  color: var(--ui-faint);
+  opacity: 1;
+}
+.app-dialog :is(input, textarea, select):focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.app-dialog :is(input, textarea, select):disabled {
+  color: var(--ui-muted);
+  background: var(--ui-raised);
+  cursor: default;
+}
+.app-dialog [aria-invalid="true"] {
+  border-color: var(--ui-danger);
+}
+.app-dialog [aria-invalid="true"]:focus-visible {
+  outline-color: var(--ui-danger);
+}
+.app-dialog:is(.modal-card, .editor-name-form) .dialog-error {
+  margin: 12px 0 0;
+  color: var(--ui-danger);
+  font: 400 var(--ui-type-caption)/1.65 var(--ui-font);
+  overflow-wrap: anywhere;
+}
+.app-dialog .dialog-error:empty,
+.app-dialog [hidden] {
+  display: none;
+}
+.app-dialog .dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 24px 0 0;
+  padding: 0;
+}
+.app-dialog .dialog-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--ui-secondary);
+  background: transparent;
+  font: 400 var(--ui-type-control)/1.4 var(--ui-font);
+  cursor: pointer;
+}
+.app-dialog .dialog-actions button:hover:not(:disabled) {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+}
+.app-dialog .dialog-actions :is(.is-primary, .modal-primary) {
+  color: var(--ui-on-accent);
+  background: var(--ui-accent);
+}
+.app-dialog .dialog-actions :is(.is-primary, .modal-primary):hover:not(:disabled) {
+  color: var(--ui-on-accent);
+  background: color-mix(in srgb, var(--ui-accent), var(--ui-panel) 12%);
+}
+.app-dialog .dialog-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.app-dialog .dialog-actions button[aria-busy="true"]::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border: 1px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ui-spin 0.8s linear infinite;
+}
+.app-dialog .dialog-actions button:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.project-dialog.app-dialog > h2 {
+  margin-bottom: 24px;
+}
+.app-dialog .project-dialog-fields {
+  gap: 8px;
+}
+.app-dialog .project-dialog-fields label {
+  margin-top: 0;
+  color: var(--ui-secondary);
+  font: 400 var(--ui-type-caption)/1.5 var(--ui-font);
+}
+.app-dialog .project-dialog-fields input + label {
+  margin-top: 12px;
+}
+.app-dialog .project-directory-field {
+  gap: 0;
+  border-radius: 12px;
+  background: var(--dialog-field-bg);
+}
+.app-dialog .project-directory-field input {
+  background: transparent;
+}
+.app-dialog .project-directory-field:has(input:focus-visible) {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.app-dialog .project-directory-field input:focus-visible {
+  outline: none;
+}
+.app-dialog .project-directory-field .app-button {
+  width: 42px;
+  min-height: 42px;
+  padding: 10px;
+  border-color: transparent;
+  border-radius: 12px;
+  background: transparent;
+}
+.app-dialog .project-directory-field .app-button:hover:not(:disabled) {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+}
+.app-dialog .project-directory-field .app-button:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: -4px;
+}
+.project-dialog .dialog-actions #project-experience-open {
+  margin-right: auto;
+  padding-inline: 0;
+}
+.app-dialog .dialog-list {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.app-dialog .dialog-list .search-result {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ui-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: 400 var(--ui-type-control)/1.5 var(--ui-font);
+}
+.app-dialog .dialog-list .search-result:hover,
+.app-dialog .dialog-list .search-result:focus-visible {
+  background: var(--ui-hover);
+}
+.app-dialog .dialog-list .search-result > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-dialog .dialog-list .search-result > small {
+  flex: 0 0 auto;
+  color: var(--ui-muted);
+  font-size: var(--ui-type-caption);
+}
+@media (max-width: 474px) {
+  .app-dialog:is(.modal-card, .editor-name-form) {
+    padding: 20px;
+  }
+}
+@media (max-height: 500px) {
+  .modal-backdrop.app-dialog-backdrop {
+    padding-block: 12px;
+  }
+  .app-dialog:is(.modal-card, .editor-name-form) {
+    max-height: calc(100dvh - 24px);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  html[data-theme] :is(.modal-backdrop, .search-overlay) {
+    background: var(--ui-bg);
+  }
+}

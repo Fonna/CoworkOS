@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "sdkVersion": "0.87.1",
+  "className": "_InteractiveMode",
+  "entry": "dist/bundle/cli.js",
+  "target": "dist/bundle/chunks/chunk-OJP47DM6.js",
+  "spansSha256": "e27b70334f674fd7188996931b2010a29849dbe1438e7fff904d0b075b8e7f82",
+  "files": {
+    "dist/bundle/cli.js": "e79626f2dd6f94aa45d30f3fa63cd84319a6eefcd150b353cfaf274366926774",
+    "dist/bundle/cli-runtime.js": "9ca136a7caa977d936aa789d7448a3dfb17851677ff5ac8c0dbcf23c31a02142",
+    "dist/bundle/chunks/chunk-OJP47DM6.js": "81c81a21ec81e84200205f561687408ff5e3738fbbbb3c2a6c186b348d376020"
+  },
+  "methods": [
+    "renderProjectTrustWarningIfNeeded",
+    "checkTmuxKeyboardSetup",
+    "suggestBugReport",
+    "crashReportInstructions",
+    "run",
+    "setupEditorSubmitHandler"
+  ]
+}

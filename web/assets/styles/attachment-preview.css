@@ -1,0 +1,87 @@
+/* File previews use the same solid surfaces and controls as the shell dialogs. */
+.attachment-preview {
+  padding: 24px;
+  background: #0006;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.attachment-preview-card {
+  box-sizing: border-box;
+  max-height: calc(100dvh - 48px);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+  color: var(--ui-text);
+  box-shadow: var(--ui-popup-shadow);
+}
+.attachment-preview-card header {
+  gap: 8px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.attachment-preview-card header strong {
+  font: 500 var(--ui-type-heading)/1.5 var(--ui-font);
+}
+.attachment-preview-card .app-button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  color: var(--ui-secondary);
+  font: 400 var(--ui-type-control)/1.4 var(--ui-font);
+}
+.attachment-preview-card .app-button.is-icon {
+  width: 32px;
+  flex: 0 0 32px;
+  padding: 6px;
+  border-color: transparent;
+}
+.attachment-preview-card .app-button:hover:not(:disabled) {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+}
+.attachment-preview-card .app-button:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.attachment-preview-card [data-preview-content] {
+  padding: 20px;
+  font: var(--ui-type-control)/1.7 var(--ui-font);
+}
+.attachment-preview-message {
+  margin: 12px 0;
+  color: var(--ui-muted);
+}
+.attachment-preview-message[role="alert"] {
+  color: var(--ui-danger);
+}
+.attachment-preview-card footer {
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--ui-border);
+  color: var(--ui-muted);
+  font: var(--ui-type-caption)/1.5 var(--ui-font);
+}
+@media (max-width: 560px) {
+  .attachment-preview {
+    padding: 12px;
+  }
+  .attachment-preview-card {
+    max-height: calc(100dvh - 24px);
+  }
+  .attachment-preview-card header {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+  .attachment-preview-card header strong {
+    flex-basis: calc(100% - 44px);
+  }
+  .attachment-preview-card [data-preview-close] {
+    order: 1;
+  }
+  .attachment-preview-card [data-preview-download] {
+    order: 2;
+  }
+  .attachment-preview-card [data-preview-content] {
+    padding: 16px 12px;
+  }
+}

@@ -1,0 +1,83 @@
+name: Release Mac DMG
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to build, for example v0.1.2-beta.7
+        required: true
+        type: string
+      replace_notes:
+        description: Replace maintainer-reviewed notes in an existing draft with the version document/template
+        required: false
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: release-mac-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: macos-15
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Validate tag, package version and source commit
+        id: release
+        run: node scripts/release-metadata.mjs
+      - name: Check release is still a draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-draft.mjs check
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci
+      - run: npm run desktop:dist
+        env:
+          CSC_NAME: ${{ vars.CSC_NAME }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      - run: npm run cad:setup && npm run build:pptist && npm run components:pack
+      - run: npm run cli:pack
+      - name: Verify artifact provenance and prepare review notes
+        run: node scripts/release-artifacts.mjs
+      - name: Create draft and upload release packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPLACE_NOTES: ${{ inputs.replace_notes || false }}
+        run: |
+          options=()
+          if [[ "$REPLACE_NOTES" == "true" ]]; then options+=(--replace-notes); fi
+          node scripts/release-draft.mjs upload "${options[@]}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CoworkOS-mac-arm64-${{ steps.release.outputs.version }}
+          path: |
+            ${{ steps.release.outputs.dmg }}
+            ${{ steps.release.outputs.checksum }}
+            release/CoworkOS-${{ steps.release.outputs.version }}-mac-arm64.signing.json
+            release/CoworkOS-${{ steps.release.outputs.version }}-mac-arm64.signing.json.sha256
+            release/coworkos-cli-${{ steps.release.outputs.version }}.tgz
+            release/coworkos-cli-${{ steps.release.outputs.version }}.tgz.sha256
+            release/CoworkOS-${{ steps.release.outputs.version }}-mac-arm64.zip
+            release/CoworkOS-${{ steps.release.outputs.version }}-mac-arm64.zip.sha256
+            release/atria-component-*
+            release/atria-components-darwin-arm64.json
+            release/atria-update-mac-arm64.json
+            release/atria-release-${{ steps.release.outputs.version }}.json
+            release/atria-release-${{ steps.release.outputs.version }}.json.sha256
+            release/atria-release-${{ steps.release.outputs.version }}.md
+          if-no-files-found: error

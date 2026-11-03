@@ -1,0 +1,103 @@
+# Mac builds, releases and acceptance
+
+[中文](../mac-release.md) | English
+
+The App targets macOS 14+ on Apple Silicon. Electron/Node is included. Current beta archives use ad-hoc signing, with no Developer ID signing, Apple notarization or accepted Intel build. Release notes must state the support scope and unfinished acceptance. Installation and model configuration are covered in [getting started](getting-started.md) and [configuration](configuration.md).
+
+## Candidate archives
+
+Prepare Node and npm on a supported Mac build machine; offline full archives also require uv:
+
+```sh
+npm ci
+npm run verify
+npx playwright install chromium
+npm run test:browser
+npm run desktop:pack
+npm run test:desktop
+npm run desktop:dist
+# Separate internal fixture acceptance; does not certify the default archive.
+npm run test:desktop:base
+```
+
+`desktop:pack` writes `.tmp/release/mac-arm64/CoworkOS.app`. `desktop:dist` creates and verifies `release/CoworkOS-<version>-mac-arm64.dmg` and SHA-256. Local builds never upload or publish. The hidden build directory avoids duplicate Spotlight/Launchpad installations.
+
+The [general packaged smoke](../../scripts/desktop-smoke.mjs), invoked by `npm run test:desktop`, reads the candidate's package metadata. For a small archive it checks the host, TXT/PPT creation/edit/save, PPT recovery after restart, JSCAD, Pi with a local model, drafts, quit/recovery and relocated upgrades. It disables CAD/Blender only in its disposable test data to avoid repeating large downloads, and explicitly reports their native checks as `SKIPPED`. Full archives retain native bundled CadQuery/BRep/STEP and Blender project checks. A passing host smoke does not certify native CAD/Blender in the small archive.
+
+Run the small-package preparation check separately. It uses isolated local HTTP components and a local model to exercise host availability during downloads, progress, backend restarts and cancellation/cleanup on quit:
+
+```sh
+ATRIA_PUBLIC_COMPONENTS_SMOKE=1 ATRIA_DESKTOP_APP=.tmp/release/mac-arm64/CoworkOS.app npx playwright test e2e/public-components-desktop.spec.js --workers=1 --output .tmp/public-components-desktop
+```
+
+This check does not establish real public downloads or native kernel execution. Separately cold-install into a fresh component directory without credentials, export an actual CAD STEP and Blender GLB, then verify restart and compatible-host reuse. Record these results independently using the component release procedure below.
+
+Default archives include PPTist and prepare CAD/Blender automatically from a fixed public Release after launch. Settings shows progress and retries; ordinary conversations remain usable. Compatible managed runtimes survive App replacement. Explicit `desktop:pack:full` / `desktop:dist:full` prepare all resources and bundle an offline App. Internal `:base` archives exclude all three components and never install them automatically. See [applications and components](optional-components.md).
+
+Small-package download installation and full-package offline execution require separate acceptance. Keep third-party notices/source materials. Existing results for older archives never certify a new package. Packaging excludes development dependencies, tests, workspaces and private configuration; review actual contents and permissions before distribution.
+
+## App tags and draft Releases
+
+The [Mac release workflow](../../.github/workflows/release-mac.yml) checks out a fixed `v<version>` tag and checks package/lock/tag agreement. It builds Mac DMG and CLI candidates on macOS 15 arm64 with Node 24 and uv, then uploads provenance, SHA-256 and release notes to a draft. It does not replace local regressions or publish the App release automatically. Beta/rc tags use Pre-release status.
+
+Review and commit release source, documentation and validation before tagging. Follow the [version process](../beta-release-process.md) (Chinese) and existing release notes. Use a new version to repair an already-published artifact; never overwrite published assets or move a tag. Manual runs can select an existing tag. Internal workflows upload Actions artifacts without creating a public App release.
+
+## Public component releases
+
+Components are published separately at [Atria-Components Releases](https://github.com/ignorejjj/Atria-Components/releases). Application sources remain private; public App delivery uses Atria-Releases. Testers can share the small DMG in their group and download components anonymously from the App.
+
+Protocol v1 pins `components-v1` and uses `hostVersion: "*"` for compatible Apps. Catalogs, archive names, exact byte sizes and SHA-256 identify a release. Do not follow an arbitrary latest version. Publish changed components under a new tag and update the App's pinned source; never replace published assets or move tags.
+
+```sh
+npm run components:pack:public
+node scripts/prepare-component-sources.mjs
+ATRIA_COMPONENT_SOURCES_DIR=.tmp/component-sources npm run components:publish
+```
+
+Source preparation runs only on maintainer machines, requiring network access, `gh` and `curl`. It never runs on user installations. `SOURCE_MANIFEST.json` lists each source/license asset's `file`, `sha256`, `bytes` and upstream source. Blender supplies its exact application source and the 4.5-series dependency sources; CAD supplies OCCT, OCP, CasADi and dependency sources/build recipes while preserving notices. See [third-party notices](../../THIRD_PARTY_NOTICES.md).
+
+The publisher verifies local component/source materials before uploading and publishing a separate component Release. Published versions reject replacement. Local maintainers use existing GitHub authorization; cross-repository Actions publishing needs the product repository's `COMPONENTS_RELEASE_TOKEN` secret, scoped to writing the component repository. Never put that token in the App, catalog or logs. Users need no credentials.
+
+After publication, use a fresh component directory without credentials to verify real catalog/download validation, installation and reuse after restart. Record actual results. This does not certify all user networks, a clean machine, signing or notarization.
+
+## App updates and signing
+
+Settings → Updates supports installed and development Apps. Startup checks once; downloading/applying an App update requires an explicit user action. Running tasks and unsaved drafts pass the desktop save/exit gates. Source updates require a clean fast-forward checkout; see [development](development.md#updating-a-source-checkout).
+
+Newly built Apps query the npm registry dist-tag (`latest` or `beta`) for `coworkos-desktop-darwin-arm64`, download its tarball, then verify registry SRI, the package file list and the DMG SHA-256. The App, platform package and DMG manifest versions must match; updates never downgrade. The CLI installer uses the same platform package, so desktop installation, in-App updates and CLI updates all use npm.
+
+Older Apps have their GitHub update URL fixed in the old binary. Publishing an npm package does not change that URL. Keep the legacy GitHub update flow for historical Apps that can still reach it; users who cannot use the old source must migrate once using the [installation guide](../getting-started.md). Do not describe this migration as an automatic update.
+
+The App offers “Check for updates”, “Download update”, then “Restart and install”; a sidebar reminder opens update details when an update exists. Downloading leaves editing available. For ad-hoc packages in user-writable locations, the installer verifies the DMG and App identity/version/architecture/strict signature, prepares a sibling candidate, saves drafts and checks running tasks, then replaces the App only after exit. It retains a previous-App backup and restores it on installation failure. Unwritable locations require system installation without automatic elevation. System security and quarantine are not disabled. Developer ID builds with a signed feed retain Electron native updates.
+
+Prepare and publish the next npm installer/App update in this order. The platform tarball contains only the matching DMG, license and version/checksum manifest; the CLI tarball contains the installer code. Complete candidate regressions, DMG acceptance and isolated npm installation first. Publish the desktop package, read its registry metadata anonymously and verify a complete install, then publish the CLI package:
+
+```sh
+VERSION=0.1.1
+ATRIA_DESKTOP_NPM_PACKAGE_DIR="$PWD/.tmp/npm-release" npm run desktop:npm:pack
+ATRIA_PACKAGE_DIR="$PWD/.tmp/npm-release" npm run npm:pack
+npm publish ".tmp/npm-release/coworkos-desktop-darwin-arm64-${VERSION}.tgz" --access public
+npm publish ".tmp/npm-release/coworkos-app-${VERSION}.tgz" --access public
+```
+
+Published versions are immutable. Package `publishConfig` selects the `latest` or `beta` tag; after publication, use anonymous `npm view` to verify the version, platform restrictions, dist-tag and integrity metadata. Before publishing the CLI, exercise the real npm transport through both the installer and App update provider. An npm release does not rewrite the URL inside an older GitHub-update client; build a compatible bridge release or follow the one-time migration guide.
+
+GitHub DMG/CLI Releases and the static update pointer remain for legacy clients and explicit manual archives. For a reviewed clean tag, generate provenance with `node scripts/release-artifacts.mjs` and run `npm run release:publish:public`; the publisher compare-and-swaps `updates/coworkos-latest.json` and never replaces published assets or moves the pointer backwards.
+
+The maintainer-only publisher uploads eight explicitly allowed ad-hoc artifacts (DMG, CLI, signing report and provenance, each with SHA-256), verifies server digests, publishes the release, and then updates the static feed with a compare-and-swap content SHA.
+
+Published versions are immutable; the feed cannot move backwards. The public Git branch contains download information and update metadata, never the private development checkout or user data.
+
+Current public publishing rejects Developer ID ZIP/feed combinations until their explicit cross-repository asset contract and acceptance are added.
+
+Maintainers explicitly select a Developer ID Application identity using `CSC_NAME`; optional Actions credentials are `CSC_LINK` and `CSC_KEY_PASSWORD`. A failed, ad-hoc or development signature cannot produce the signed update ZIP. With no explicit identity, automatic signing discovery is disabled and only the DMG path is used. Certificates and private keys never enter source.
+
+Signing alone does not establish notarization, Gatekeeper acceptance or real old-to-new upgrade success.
+
+## Data and installation acceptance
+
+Users drag CoworkOS from DMG into Applications. Data remains under shared `~/.atria/`, relocated with `ATRIA_HOME`; external project originals require their own backups. Component installation uses its managed directory outside the App. Replacing the App preserves documents, conversations, settings and compatible components. Back up important data before upgrades and verify recovery after restart. See [storage layout](../task-workspace-layout.md) (Chinese).
+
+The desktop saves model keys using Electron safeStorage, rejecting saves when encryption is unavailable. Gatekeeper may require the system's explicit approval flow for the current beta. Stable distributions still require Developer ID signing, notarization, stapling and downloaded-quarantine acceptance. Do not disable system protections.
+
+Real speech permissions/recording, actual model connections, relocated native CAD/Blender execution, a separate clean machine, interruption/upgrade recovery, source/license review and final artifact hashes are independent acceptance evidence. Skipped checks and protocol fixtures cannot be reported as passed. The [Chinese release guide](../mac-release.md) contains the detailed native resource and acceptance checklist.

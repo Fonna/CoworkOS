@@ -1,0 +1,238 @@
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
+
+const composerPrefix = "atria.composer.v1:";
+const isDraftKey = (key) => key?.startsWith(composerPrefix) || key?.startsWith("atria.human.v1:");
+let draftWarning;
+const draftErrorListeners = new Set();
+let lastDraftError;
+function reportDraftFailure(error) {
+  draftWarning =
+    typeof error?.message === "string" ? error.message : "草稿暂时无法保存到本机，请保留当前窗口";
+  if (lastDraftError === draftWarning) return;
+  lastDraftError = draftWarning;
+  for (const handler of draftErrorListeners) {
+    try {
+      handler(draftWarning);
+    } catch {
+      /* A renderer callback must not block the close acknowledgement. */
+    }
+  }
+}
+let draftsReady = true;
+let draftWrites = Promise.resolve();
+let lastDraftSnapshot;
+let draftTimer;
+let inputRevision = 0;
+function draftSnapshot() {
+  const entries = {};
+  for (let index = 0; index < localStorage.length; index++) {
+    const key = localStorage.key(index);
+    if (isDraftKey(key)) entries[key] = localStorage.getItem(key);
+  }
+  return entries;
+}
+if (location.protocol === "http:" || location.protocol === "https:") {
+  try {
+    const snapshot = ipcRenderer.sendSync("bookman:composer-drafts");
+    draftWarning = snapshot.warning;
+    const existing = {};
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = localStorage.key(index);
+      if (isDraftKey(key)) existing[key] = localStorage.getItem(key);
+    }
+    // A new origin uses the profile snapshot, including deletions. The current
+    // origin's own storage may be newer immediately after a window closes.
+    if ((snapshot.persisted && snapshot.origin !== location.origin) || !Object.keys(existing).length) {
+      try {
+        for (const key of Object.keys(existing)) localStorage.removeItem(key);
+        for (const [key, value] of Object.entries(snapshot.entries || {}))
+          if (isDraftKey(key) && typeof value === "string") localStorage.setItem(key, value);
+      } catch (error) {
+        for (let index = localStorage.length - 1; index >= 0; index--) {
+          const key = localStorage.key(index);
+          if (isDraftKey(key)) localStorage.removeItem(key);
+        }
+        for (const [key, value] of Object.entries(existing)) localStorage.setItem(key, value);
+        throw error;
+      }
+    }
+  } catch {
+    draftsReady = false;
+    draftWarning = "草稿暂时无法恢复，请保留当前窗口并检查本机存储空间";
+  }
+}
+function persistComposerDrafts(force = false) {
+  if (force && draftTimer) {
+    clearTimeout(draftTimer);
+    draftTimer = undefined;
+  }
+  if (!draftsReady) return Promise.reject(new Error(draftWarning));
+  let entries, serialized;
+  try {
+    entries = draftSnapshot();
+    serialized = JSON.stringify(entries);
+  } catch {
+    return Promise.reject(new Error("草稿暂时无法保存到本机，请保留当前窗口"));
+  }
+  if (!force && serialized === lastDraftSnapshot) return draftWrites;
+  lastDraftSnapshot = serialized;
+  draftWrites = draftWrites
+    .catch(() => {})
+    .then(() => ipcRenderer.invoke("bookman:save-composer-drafts", entries));
+  draftWrites.catch(() => {
+    lastDraftSnapshot = undefined;
+  });
+  draftWrites
+    .then(() => {
+      draftWarning = undefined;
+      lastDraftError = undefined;
+    })
+    .catch(() => {});
+  return draftWrites;
+}
+const scheduleComposerDrafts = () => {
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    draftTimer = undefined;
+    void persistComposerDrafts().catch(reportDraftFailure);
+  }, 200);
+};
+const mirrorComposerDrafts = () => {
+  inputRevision += 1;
+  queueMicrotask(scheduleComposerDrafts);
+};
+for (const event of ["input", "change", "drop"]) document.addEventListener(event, mirrorComposerDrafts);
+window.addEventListener("beforeunload", () => {
+  void persistComposerDrafts().catch(reportDraftFailure);
+});
+
+let fullscreen = false;
+function reflectWindowState() {
+  if (!document.documentElement) return;
+  document.documentElement.dataset.desktopPlatform = process.platform;
+  document.documentElement.dataset.desktopFullscreen = String(fullscreen);
+}
+document.addEventListener("DOMContentLoaded", reflectWindowState, { once: true });
+ipcRenderer.on("bookman:window-state", (_event, value) => {
+  if (typeof value !== "boolean") return;
+  fullscreen = value;
+  reflectWindowState();
+});
+
+let initialAppearance;
+try {
+  initialAppearance = ipcRenderer.sendSync("bookman:appearance");
+} catch {
+  /* System fallback. */
+}
+let initialLanguage;
+try {
+  initialLanguage = ipcRenderer.sendSync("bookman:language");
+} catch {
+  /* Chinese fallback. */
+}
+contextBridge.exposeInMainWorld("bookmanDesktop", {
+  language: {
+    initial: initialLanguage,
+    set: (value) => ipcRenderer.invoke("bookman:set-language", value)
+  },
+  appearance: {
+    initial: initialAppearance,
+    set: (value) => ipcRenderer.invoke("bookman:set-appearance", value),
+    onChange: (handler) => {
+      if (typeof handler !== "function") return;
+      ipcRenderer.on("bookman:appearance-changed", (_event, value) => handler(value));
+    }
+  },
+  platform: process.platform,
+  draftWarning,
+  saveComposerDrafts: scheduleComposerDrafts,
+  onDraftError: (handler) => {
+    if (typeof handler !== "function") return;
+    draftErrorListeners.add(handler);
+    if (draftWarning) handler(draftWarning);
+  },
+  onPrepareClose: (handler) => {
+    ipcRenderer.on("bookman:prepare-close", async (_event, requestId) => {
+      let saved = false;
+      try {
+        for (;;) {
+          const revision = inputRevision;
+          saved = await handler();
+          if (!saved) break;
+          const snapshot = JSON.stringify(draftSnapshot());
+          await persistComposerDrafts(true);
+          // Edits remain usable while the disk write is pending. Recheck both
+          // memory-only input and programmatic storage changes before closing.
+          if (revision === inputRevision && snapshot === JSON.stringify(draftSnapshot())) break;
+        }
+      } catch (error) {
+        saved = false;
+        reportDraftFailure(error);
+        /* the host will keep the app open */
+      }
+      await ipcRenderer.invoke("bookman:documents-ready", requestId, saved === true);
+    });
+  },
+  componentAuthStatus: () => ipcRenderer.invoke("bookman:component-auth-status"),
+  saveComponentAuth: (input) => ipcRenderer.invoke("bookman:save-component-auth", input),
+  modelStatus: () => ipcRenderer.invoke("bookman:model-status"),
+  testModel: (settings) => ipcRenderer.invoke("bookman:test-model", settings),
+  // Global policy mutation and human resume stay on the trusted main-frame IPC surface.
+  computerUse: (input) => ipcRenderer.invoke("bookman:computer-use", input),
+  harnessLaunch: (appType, workspaceDir) =>
+    ipcRenderer.invoke("bookman:harness-launch", appType, workspaceDir),
+  cadViewer: {
+    start: (workspaceDir, owner) => ipcRenderer.invoke("bookman:cad-viewer:start", workspaceDir, owner),
+    status: () => ipcRenderer.invoke("bookman:cad-viewer:status"),
+    attach: (bounds) => ipcRenderer.invoke("bookman:cad-viewer:attach", bounds),
+    detach: (owner) => ipcRenderer.invoke("bookman:cad-viewer:detach", owner),
+    onStatusChanged: (handler) => {
+      if (typeof handler !== "function") return () => {};
+      const listener = (_event, value) => handler(value);
+      ipcRenderer.on("bookman:cad-viewer:status-changed", listener);
+      return () => ipcRenderer.removeListener("bookman:cad-viewer:status-changed", listener);
+    }
+  },
+  officeHarness: {
+    start: (owner) => ipcRenderer.invoke("bookman:office-harness:start", owner),
+    status: () => ipcRenderer.invoke("bookman:office-harness:status"),
+    attach: (bounds) => ipcRenderer.invoke("bookman:office-harness:attach", bounds),
+    detach: (owner) => ipcRenderer.invoke("bookman:office-harness:detach", owner),
+    onStatusChanged: (handler) => {
+      if (typeof handler !== "function") return () => {};
+      const listener = (_event, value) => handler(value);
+      ipcRenderer.on("bookman:office-harness:status-changed", listener);
+      return () => ipcRenderer.removeListener("bookman:office-harness:status-changed", listener);
+    }
+  },
+  voiceInput: {
+    supported: process.platform === "darwin",
+    start: (input) => ipcRenderer.invoke("bookman:voice-start", input),
+    stop: (input) => ipcRenderer.invoke("bookman:voice-stop", input),
+    cancel: (input) => ipcRenderer.invoke("bookman:voice-cancel", input),
+    onEvent: (handler) => {
+      if (typeof handler !== "function") return () => {};
+      const listener = (_event, value) => handler(value);
+      ipcRenderer.on("bookman:voice-event", listener);
+      return () => ipcRenderer.removeListener("bookman:voice-event", listener);
+    }
+  },
+  webSearchStatus: () => ipcRenderer.invoke("bookman:web-search-status"),
+  saveWebSearch: (settings) => ipcRenderer.invoke("bookman:save-web-search", settings),
+  saveModel: (settings) => ipcRenderer.invoke("bookman:save-model", settings),
+  updateStatus: () => ipcRenderer.invoke("bookman:update-status"),
+  checkUpdates: (options = {}) => ipcRenderer.invoke("bookman:check-updates", options),
+  applyUpdate: () => ipcRenderer.invoke("bookman:apply-update"),
+  onUpdateStatus: (handler) => {
+    if (typeof handler !== "function") return () => {};
+    const listener = (_event, value) => handler(value);
+    ipcRenderer.on("bookman:update-status", listener);
+    return () => ipcRenderer.removeListener("bookman:update-status", listener);
+  },
+  version: process.env.npm_package_version || "0.1.0",
+  pathForFile: (file) => webUtils.getPathForFile(file),
+  chooseProject: () => ipcRenderer.invoke("bookman:choose-project"),
+  openPath: (path) => ipcRenderer.invoke("bookman:open-path", path),
+  notify: (title, body) => ipcRenderer.invoke("bookman:notify", { title, body })
+});

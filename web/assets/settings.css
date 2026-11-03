@@ -1,0 +1,1004 @@
+/* Shared settings surfaces for Web and desktop; form and host behavior stay in their controllers. */
+.settings-backdrop.modal-backdrop {
+  padding: 24px 16px;
+  background: #0006;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.settings-backdrop .settings-card.modal-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  overflow: hidden;
+  color: var(--ui-text);
+  background: var(--ui-panel);
+  border: 1px solid var(--ui-border);
+  border-radius: 22px;
+  box-shadow: 0 16px 48px light-dark(#0000001f, #0000004d);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  text-align: left;
+}
+.settings-card .settings-heading {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+}
+.settings-heading > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.settings-card .settings-nav-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--ui-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+.settings-card .settings-nav-button:hover:not(:disabled) {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+}
+.settings-card .settings-nav-button:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.settings-card .settings-nav-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.settings-nav-button .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+.settings-card .settings-heading h2 {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+.settings-card .settings-heading p {
+  margin: 4px 0 0;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.settings-symbol,
+.settings-row-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--ui-secondary);
+  background: var(--ui-raised);
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+}
+.settings-symbol .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+.settings-row-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+.settings-card .settings-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 24px 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-border-hover) transparent;
+}
+.settings-section-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+.settings-card .profile-setting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+}
+.settings-row-copy {
+  display: flex;
+  flex: 1 1 160px;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.settings-row-copy > span:last-child {
+  min-width: 0;
+}
+.settings-card .profile-setting :is(strong, label) {
+  display: block;
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.settings-card .profile-setting small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.settings-card .profile-setting small:empty {
+  display: none;
+}
+.settings-backdrop .profile-card.settings-card {
+  width: min(560px, calc(100vw - 32px));
+  border-radius: 16px;
+}
+.profile-card .settings-heading {
+  padding-bottom: 14px;
+}
+.settings-overview {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+}
+.settings-overview-group {
+  min-width: 0;
+}
+.settings-overview-group > h3 {
+  margin: 0 0 4px;
+  color: var(--ui-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.settings-card .settings-overview .profile-setting {
+  flex-wrap: nowrap;
+  gap: 12px;
+  padding: 12px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.settings-card .settings-overview .settings-overview-rows > * + * {
+  border-top: 1px solid var(--ui-border);
+}
+.settings-card .settings-overview .settings-row-copy {
+  flex: 1 1 0;
+  align-items: flex-start;
+  gap: 12px;
+}
+.settings-card .settings-overview .settings-row-icon {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.settings-card .settings-overview .settings-row-icon .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+.settings-card .settings-overview .profile-setting > .app-button.is-secondary,
+.settings-card .settings-overview .user-memory-actions .app-button.is-secondary {
+  flex: 0 0 auto;
+  gap: 3px;
+  min-height: 32px;
+  padding: 5px 0 5px 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ui-secondary);
+}
+.settings-card .settings-overview .profile-setting > .app-button .ui-icon,
+.settings-card .settings-overview .user-memory-actions .app-button .ui-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--ui-faint);
+}
+.settings-card .settings-overview .profile-setting > .app-button:hover,
+.settings-card .settings-overview .user-memory-actions .app-button:hover {
+  border-color: transparent;
+  background: var(--ui-hover);
+}
+.settings-card .settings-overview .appearance-setting select {
+  min-width: 120px;
+  min-height: 32px;
+  padding-block: 5px;
+  background: var(--ui-panel);
+}
+.settings-card .settings-overview .desktop-updates {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.settings-card .settings-overview .desktop-updates .profile-setting {
+  padding: 12px 0;
+}
+.settings-card .settings-overview .desktop-updates .profile-setting > .app-button {
+  appearance: none;
+  min-height: 32px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font: 400 13px/20px var(--ui-font);
+}
+.settings-card .settings-overview .desktop-updates .profile-setting > .app-button.is-secondary {
+  color: var(--ui-secondary);
+  border-color: transparent;
+  background: var(--ui-raised);
+}
+.settings-card
+  .settings-overview
+  .desktop-updates
+  .profile-setting
+  > .app-button.is-secondary:hover:not(:disabled) {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+}
+.settings-card .settings-overview .desktop-updates .profile-setting > .app-button:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.settings-card .settings-overview .desktop-updates > :is(p, progress) {
+  margin-left: 32px;
+}
+.settings-card .settings-overview .desktop-updates > p {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.settings-card .settings-overview .desktop-updates > progress {
+  width: calc(100% - 32px);
+}
+.settings-card .settings-overview .user-memory-setting {
+  display: flex;
+}
+.settings-card .settings-overview .user-memory-actions {
+  gap: 4px;
+}
+.settings-card .settings-overview .user-memory-switch {
+  padding: 6px 0;
+}
+.settings-card .settings-form {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.settings-form-content,
+.settings-advanced-content {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+.settings-card .settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  color: var(--ui-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.settings-card :is(input:not([type="checkbox"]), select) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  margin: 0;
+  padding: 9px 11px;
+  color: var(--ui-text);
+  background-color: var(--ui-panel);
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  outline: none;
+  font: 400 14px/1.5 var(--ui-font);
+  color-scheme: inherit;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.settings-card input::placeholder {
+  color: var(--ui-muted);
+  font-weight: 400;
+}
+.settings-card :is(input, select):focus-visible {
+  border-color: var(--ui-accent);
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+.settings-card :is(input, select):disabled {
+  opacity: 0.5;
+}
+.settings-card :is(.settings-help, .settings-note, [data-model-result]) {
+  display: block;
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.settings-card .settings-note {
+  color: var(--ui-secondary);
+  font-size: 13px;
+}
+.settings-profile {
+  display: grid;
+  gap: 7px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.science-check-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.science-environments {
+  display: grid;
+  gap: 12px;
+}
+
+.science-environment {
+  padding: 14px;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.science-environment p {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.science-environment progress {
+  display: block;
+  width: 100%;
+  height: 5px;
+  margin: 10px 0;
+  accent-color: var(--ui-accent);
+}
+
+.science-environment progress[hidden] {
+  display: none;
+}
+
+.science-environment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.science-check-result {
+  padding: 12px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: var(--ui-bg);
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.science-check-result strong,
+.science-install-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+.science-check-result p {
+  margin: 5px 0 0;
+  color: var(--ui-muted);
+}
+.science-check-result ul {
+  margin: 5px 0 0;
+  padding-left: 18px;
+}
+.science-install-command {
+  margin: 0;
+  padding: 10px;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ui-secondary);
+  background: var(--ui-panel);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.model-connection-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+.model-connection-fields > :is(.model-full-width, small) {
+  grid-column: 1 / -1;
+}
+.model-connection-fields > small {
+  margin-top: -7px;
+}
+.settings-capabilities {
+  display: grid;
+  padding: 0 13px;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+}
+.settings-card .settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding: 13px 0;
+  cursor: pointer;
+}
+.settings-toggle + .settings-toggle {
+  border-top: 1px solid var(--ui-border);
+}
+.settings-toggle strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.settings-toggle small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.settings-card .settings-toggle input[type="checkbox"] {
+  appearance: none;
+  position: relative;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 20px;
+  margin: 0;
+  background: var(--ui-border-hover);
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.settings-toggle input::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  background: var(--ui-panel);
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+.settings-card .settings-toggle input:checked {
+  background: var(--ui-accent);
+}
+.settings-toggle input:checked::before {
+  transform: translateX(12px);
+  background: var(--ui-bg);
+}
+.settings-card .settings-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  cursor: pointer;
+}
+.settings-checkbox input {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  accent-color: var(--ui-accent);
+}
+.settings-card .settings-advanced {
+  min-width: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+}
+.settings-advanced > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  color: var(--ui-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  list-style: none;
+  cursor: pointer;
+}
+.settings-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+.settings-advanced > summary .ui-icon {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.15s;
+}
+.settings-advanced[open] > summary .ui-icon {
+  transform: rotate(180deg);
+}
+.settings-advanced > summary:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+  border-radius: 11px;
+}
+.settings-advanced-content {
+  padding: 4px 13px 16px;
+}
+.settings-card .settings-status {
+  justify-self: start;
+  margin: 0;
+  padding: 5px 9px;
+  color: var(--ui-secondary);
+  background: var(--ui-raised);
+  border: 1px solid var(--ui-border);
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.settings-card .settings-feedback {
+  flex: 0 0 auto;
+  padding: 0 24px 16px;
+}
+.settings-feedback:not(:has(p:not(:empty))) {
+  display: none;
+}
+.settings-backdrop .settings-card [role="alert"] {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  color: var(--ui-danger);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.settings-card :is([role="alert"], #appearance-status):empty {
+  display: none;
+}
+.settings-card #appearance-status {
+  flex-basis: 100%;
+  margin: 0;
+  line-height: 1.6;
+}
+.settings-backdrop .settings-card .modal-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 24px;
+  background: var(--ui-bg);
+  border-top: 1px solid var(--ui-border);
+}
+.settings-card .modal-actions:has(> :only-child[hidden]) {
+  display: none;
+}
+.settings-backdrop .settings-card .app-button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.settings-backdrop .settings-card .app-button.is-secondary {
+  color: var(--ui-secondary);
+  background: var(--ui-panel);
+  border-color: var(--ui-border);
+}
+.settings-backdrop .settings-card .app-button.is-secondary:hover:not(:disabled) {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+  border-color: var(--ui-border-hover);
+}
+.settings-backdrop .settings-card .app-button.is-primary {
+  color: var(--ui-bg);
+  background: var(--ui-text);
+  border-color: transparent;
+}
+.settings-backdrop .settings-card .app-button.is-primary:hover:not(:disabled) {
+  color: var(--ui-bg);
+  background: var(--ui-secondary);
+}
+.settings-card .appearance-setting select {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 128px;
+  min-height: 36px;
+  padding: 7px 32px 7px 12px;
+}
+.settings-card .desktop-updates {
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  background: var(--ui-bg);
+}
+.settings-card .desktop-updates .profile-setting {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.settings-card .desktop-updates p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.settings-card .desktop-updates progress {
+  width: 100%;
+  height: 5px;
+  accent-color: var(--ui-accent);
+}
+.conversation-sidebar .desktop-update-notice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0 0 6px 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ui-bg);
+  background: var(--ui-text);
+  cursor: pointer;
+}
+.conversation-sidebar .desktop-update-notice:hover {
+  background: var(--ui-secondary);
+}
+.conversation-sidebar .desktop-update-notice:focus-visible {
+  outline: 2px solid var(--ui-text);
+  outline-offset: 3px;
+}
+.desktop-update-notice[hidden] {
+  display: none;
+}
+@media (max-width: 520px) {
+  .settings-card .settings-heading {
+    padding: 20px;
+  }
+  .settings-card .settings-scroll {
+    padding: 0 20px 20px;
+  }
+  .settings-card .settings-feedback {
+    padding-inline: 20px;
+  }
+  .settings-backdrop .settings-card .modal-actions {
+    padding: 14px 20px;
+  }
+  .model-connection-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings-card .profile-setting {
+    padding: 12px;
+  }
+}
+@media (max-width: 400px) {
+  .settings-card .profile-setting > .settings-row-copy {
+    flex-basis: 100%;
+  }
+  .settings-card .profile-setting > :is(.app-button, select) {
+    margin-left: 41px;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .settings-backdrop.modal-backdrop {
+    background: var(--ui-bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .settings-backdrop .settings-card.modal-card {
+    background: var(--ui-panel);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-card * {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .settings-backdrop .settings-card.modal-card {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+  .settings-card .settings-toggle input[type="checkbox"] {
+    appearance: auto;
+  }
+  .settings-toggle input::before {
+    content: none;
+  }
+}
+
+.computer-setting > .settings-row-copy {
+  width: 100%;
+}
+.computer-setting > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.computer-setting > summary::-webkit-details-marker {
+  display: none;
+}
+.computer-setting > summary:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.settings-row-action {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 3px;
+  padding-left: 8px;
+  color: var(--ui-secondary);
+  font-size: 13px;
+}
+.settings-row-action .ui-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--ui-faint);
+}
+.computer-setting[open] .settings-row-action .ui-icon {
+  transform: rotate(90deg);
+}
+.computer-setting-content {
+  margin-left: 32px;
+  padding-bottom: 12px;
+}
+.computer-setting-content > p {
+  margin: 0 0 12px;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.computer-setting-content > p:last-child {
+  margin-bottom: 0;
+}
+.computer-setting strong,
+.computer-setting small {
+  display: block;
+}
+.computer-setting small {
+  margin-top: 4px;
+  color: var(--ui-muted);
+  font-size: 12px;
+}
+.computer-permission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.computer-permission-actions[hidden] {
+  display: none;
+}
+.computer-setting > p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.computer-setting [data-computer-error] {
+  color: var(--ui-danger);
+}
+
+.settings-card .component-manager {
+  padding: 0;
+  gap: 16px;
+}
+.settings-card .component-manager > h3 {
+  display: none;
+}
+.settings-card .component-manager > button {
+  justify-self: start;
+}
+.settings-card .component-card {
+  padding: 16px;
+  border-color: var(--ui-border);
+  border-radius: 14px;
+  background: var(--ui-bg);
+}
+.settings-card .component-card:focus {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: -2px;
+}
+.settings-card .component-card > strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.settings-card .component-status {
+  color: var(--ui-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.user-memory-editor textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 10px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  font: inherit;
+}
+.user-memory-editor button {
+  margin: 0 8px 10px 0;
+}
+
+.settings-card .user-memory-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 16px;
+}
+.settings-card .user-memory-setting .settings-row-copy strong {
+  margin: 0;
+  line-height: 1.35;
+}
+.settings-card .user-memory-setting .settings-row-copy small {
+  margin-top: 1px;
+  line-height: 1.4;
+}
+.settings-card .user-memory-switch {
+  justify-self: end;
+  padding: 6px 0 6px 12px;
+}
+.user-memory-switch input:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 3px;
+}
+.user-memory-switch input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.user-memory-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.user-memory-learning-options {
+  margin: 0 0 2px 32px;
+  padding: 0;
+}
+.user-memory-learning-options > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0;
+  list-style: none;
+  cursor: pointer;
+  color: var(--ui-secondary);
+  font-size: 12px;
+}
+.user-memory-learning-options > summary::-webkit-details-marker {
+  display: none;
+}
+.user-memory-learning-options > summary > small {
+  margin-left: auto;
+  color: var(--ui-muted);
+}
+.user-memory-learning-options > summary > .ui-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--ui-faint);
+}
+.user-memory-learning-options[open] > summary > .ui-icon {
+  transform: rotate(90deg);
+}
+.user-memory-learning-options > summary:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.user-memory-learning-content {
+  padding-bottom: 14px;
+}
+.user-memory-learning-options form {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+.user-memory-learning-options button {
+  justify-self: start;
+}
+.user-memory-learning-options [data-memory-options-result]:empty {
+  display: none;
+}
+@media (max-width: 480px) {
+  .settings-card .user-memory-setting {
+    gap: 6px 10px;
+  }
+  .user-memory-actions {
+    gap: 8px;
+  }
+  .settings-card .settings-overview .appearance-setting .settings-row-copy {
+    flex-basis: 0;
+  }
+  .settings-card .settings-overview .profile-setting > :is(.app-button, select) {
+    margin-left: 0;
+  }
+  .settings-card .settings-overview .user-memory-setting {
+    flex-wrap: wrap;
+  }
+  .settings-card .settings-overview .user-memory-setting .settings-row-copy {
+    flex-basis: calc(100% - 32px);
+  }
+  .settings-card .settings-overview .user-memory-actions {
+    margin-left: 32px;
+    margin-top: -6px;
+  }
+}
+.user-memory-compose {
+  margin: 0;
+}
+.user-memory-compose-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+.user-memory-compose-actions button {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.user-memory-compose-actions .settings-help {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.user-memory-compose [data-memory-compose-result]:empty,
+.settings-scroll > [data-memory-view-status]:empty {
+  display: none;
+}

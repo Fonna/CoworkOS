@@ -1,0 +1,190 @@
+# 配置参考
+
+简体中文 | [English](en/configuration-reference.md)
+
+日常连接和设置操作见 [模型与运行配置](configuration.md)。
+
+## 模型参数
+
+| JSON 字段                             | 取值与默认行为                                                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| `baseUrl`                             | 服务根地址或 `/v1`；兼容旧字段 `apiBase`                                         |
+| `model`                               | 服务商模型 ID                                                                    |
+| `apiKey`                              | 私有配置中的密钥，也可用 `COWORK_API_KEY`                                        |
+| `api`                                 | `openai-responses` 或 `openai-completions`；新连接默认前者，旧配置缺失时保留后者 |
+| `supportsImages`                      | 新连接默认 `false`                                                               |
+| `thinkingFormat`                      | `auto`（默认）、`openai` 或 `zai`，仅影响 Chat Completions                       |
+| `reasoningEffort`                     | `off`、`low`、`medium`、`high`、`xhigh`、`max`；服务需支持所选值                 |
+| `supportsReasoningEffort`             | 新连接默认 `false`，不发送强度字段                                               |
+| `supportsPromptCacheKey`              | 第三方服务默认 `false`，确认支持后开启                                           |
+| `contextWindow`                       | 默认 256000 token，需为正的安全整数                                              |
+| `mainMaxTokens` / `subagentMaxTokens` | 新连接均为 8192；整数 1 至 65536，且不超过服务上限                               |
+| `workspaceRoot`                       | 持久任务及应用资源目录，建议绝对路径                                             |
+
+`contextWindow` 用于 Main、子智能体及恢复任务的上下文预算和自动压缩，不作为模型请求参数发送。旧连接缺少该字段时使用 256000。输出上限另行设置。
+
+`off` 始终省略强度字段。旧 `minimal` 值仍可读取，界面标为旧配置；编辑其他字段会保留它，选择并保存其他强度后才替换。未显式配置的旧连接可能沿用 Runtime 的 `high` 和推理支持默认值，新连接使用 `off` / `false`。
+
+连接测试、Main 和子智能体共用能力校正及请求序列化规则。显式强度被服务拒绝时，测试失败，不自动换档。测试使用短合成消息和测试工具，不发送真实会话历史；开启图像后会检查合成图片的底色与随机大号数字 2 或 4。长上下文、内容策略和实际任务需另行验证。
+
+自定义 GLM 网关未被 SDK 识别时，可选“GLM 格式”或设置 `thinkingFormat: "zai"`：开启思考发送 `thinking: {type: "enabled", clear_thinking: false}`；关闭发送 `thinking: {type: "disabled"}` 并省略 `reasoning_effort`。`openai` 使用标准强度字段，`auto` 使用 SDK 自动识别。此设置随连接传递给 Main、子智能体和恢复任务；Responses 协议不变。
+
+`supportsPromptCacheKey` 控制第三方服务的 `prompt_cache_key`。开启后发送稳定会话键，超过 64 个字符时使用 SHA-256；默认省略。`api.openai.com` 保留 SDK 默认行为，程序化的 `cacheRetention: "none"` 始终省略该键。键随连接用于 Main、子智能体和恢复任务，但不能启用服务端缓存或保证命中；自动前缀缓存也可能不依赖此键。
+
+## CLI 配置文件
+
+启动器选择第一份匹配的文件，文件间不合并：
+
+1. `COWORK_CONFIG` 指定的文件。
+2. 启动目录的 `.cowork/config.json`。
+3. 启动目录的 `config.json`。
+4. `~/.atria/config.json`，或 `ATRIA_HOME/config.json`。
+
+启动或运行 `doctor` 时，`COWORK_CONFIG` 指定的文件必须存在；`init` 可以在该路径创建新文件。选中文件的 JSON 或字段无效时直接报错，不回退到下一项。
+
+环境变量覆盖选中文件，对应入口的显式参数再覆盖同名设置，例如 Main 的 `--thinking low`。相对配置路径按启动目录解析。
+
+`coworkos init` 默认创建用户配置；若已有项目配置或设置了 `COWORK_CONFIG`，则使用对应文件。已有文件默认拒绝覆盖。`coworkos init --force` 读取并更新已有配置，复用已保存的地址、模型和密钥，只询问缺失的必填值。修改地址或模型时传入 `--base-url`、`--model`；更换密钥时先设置 `COWORK_API_KEY`，或用 `--api-key-env` 指定保存新密钥的环境变量。其他字段及既有消息格式保留。
+
+已有文件无法解析或字段无效时，先修正文件；`--force` 仍会读取它。自动化初始化可从已设置的环境变量读取密钥：
+
+```sh
+coworkos init --base-url https://your-service.example/v1 --model your-model-id --api-key-env COWORK_API_KEY
+```
+
+可选参数：`--images`、`--reasoning`、`--thinking high`、`--max-tokens 8192`、`--force`。`init` 没有消息格式选项。仅支持 Chat Completions 的服务需在所选配置文件中设置 `"api": "openai-completions"`，或在启动 CLI 时设置 `COWORK_MODEL_API=openai-completions`。
+
+要为当前项目创建独立配置，在项目目录运行：
+
+```sh
+COWORK_CONFIG="$PWD/.cowork/config.json" coworkos init
+```
+
+初始化会创建所需目录。完成后运行 `coworkos doctor` 确认实际选中的配置路径。
+
+源码开发也可在 CoworkOS 源码仓库根目录复制示例：
+
+```sh
+mkdir -p .cowork
+cp config.example.json .cowork/config.json
+chmod 600 .cowork/config.json
+```
+
+替换示例地址、模型和密钥，也可移除 `apiKey` 并使用环境变量。示例 `workspaceRoot: ".tmp"` 适用于源码开发；跨项目复用任务宜使用固定绝对目录。不要将真实密钥写进命令参数或共享脚本。
+
+源码 Web 使用同一文件优先级，已安装 App 由宿主管理配置。`coworkos doctor` 会检查环境、配置和工作区写入，并以临时文件验证离线查找、内容搜索及忽略规则，不打印密钥。加上 `--test-connection` 才请求模型。
+
+Finder/Dock 启动的 macOS App 会将存在的 `~/.local/bin`、Homebrew `bin`/`sbin`、`/usr/local/bin`/`sbin` 和用户或系统 LibreOffice 目录补入后端 `PATH`，由 Main、子智能体和命令继承。仅含系统目录时，工具目录前置；已有自定义顺序则保留，在末尾补充缺项。不执行 shell 配置或猜测版本管理器目录。终端 CLI 使用调用方环境。
+
+## 连接存储与兼容
+
+App 使用 Electron safeStorage 的 macOS 加密能力；Web / CLI 通常使用权限为 0600 的本机 JSON。App 的模型、搜索和组件凭据共用钥匙串保存行为：失败或取消时保留表单和旧配置，再次保存重试，不自动改为明文。
+
+旧单组连接显示为“默认配置”。首次保存多组配置前创建 `.before-model-profiles` 备份，并保留旧桌面 `model-secret.bin`；未知版本拒绝覆盖。恢复备份前先退出应用，配置和备份均按私有数据管理。
+
+正式版和开发版通过独立的钥匙串进程使用相同的 `Atria` 加密标识，开发窗口显示 CoworkOS Dev。旧开发标识加密的密钥可能需要重新输入，原密文与源目录保留。原生钥匙串和签名兼容需单独验收。
+
+## 独立视觉连接
+
+`modelConnections.visionId` 指向已保存且启用 `supportsImages` 的连接。原生图像模型直接接收像素；只有纯文本模型调用 `read_image` 时使用独立视觉连接。界面操作见 [模型连接](configuration.md#app-与-web-模型连接)。
+
+CLI 环境设置需同时提供 `COWORK_VISION_API_BASE`、`COWORK_VISION_API_KEY` 和 `COWORK_VISION_MODEL`。完整设置优先于保存的视觉连接，缺项时报错。
+
+| 可选变量                                  | 含义与默认值                                |
+| ----------------------------------------- | ------------------------------------------- |
+| `COWORK_VISION_MODEL_API`                 | 视觉连接的消息格式                          |
+| `COWORK_VISION_THINKING_FORMAT`           | 视觉连接的思考格式                          |
+| `COWORK_VISION_MAX_TOKENS`                | 默认 8192；范围 1 至 65536，审阅时最多 8192 |
+| `COWORK_VISION_REASONING_EFFORT`          | 默认 `off`                                  |
+| `COWORK_VISION_SUPPORTS_REASONING_EFFORT` | 默认 `false`                                |
+
+可信子进程继承所选连接，密钥不进入界面或队列；凭据仍使用原有加密或私有 JSON 存储。
+
+## 联网搜索
+
+无显式设置时使用 Exa。已有 `serperApiKey`、`COWORK_SERPER_API_KEY` 或 `SERPER_API_KEY` 时保留 Serper；显式 `webSearch.provider`（`exa` / `serper` / `off`）优先于凭据推断。旧 `webTools: false` 和 `COWORK_WEB_TOOLS=0` 关闭搜索，环境关闭优先。`COWORK_WEB_TOOLS=1` 可覆盖旧布尔关闭，但不能覆盖明确的 `provider: "off"`。升级不写回已有选择。
+
+自有 Exa 密钥可用 `webSearch.exaApiKey` 或 `COWORK_EXA_API_KEY` / `EXA_API_KEY`，环境变量优先。Serper 仍需自己的密钥。Main、子智能体和恢复会话使用同一搜索配置。
+
+默认连接 [Exa 官方托管 MCP](https://exa.ai/docs/get-started/exa-mcp)：`https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa`。仅启用基础搜索和读取，支持 JSON/SSE、会话及协议头、取消与 30 秒总期限。`COWORK_EXA_MCP_ENDPOINT` 仅用于可信测试服务，界面不提供地址输入。
+
+工具保留来源的标题、URL、正文和可用日期，缺失日期不补造。单 URL 读取需有效来源及非空正文，并保留重定向后的 URL；多来源需匹配请求 URL。无效来源、空结构、仅元数据或无法关联的正文均算工具失败，供应商 JSON 包装不作为网页证据。只有服务返回真实空列表才算零结果；网络、代理、协议、超时及取消均为失败。
+
+## 科学环境
+
+`science.enabled`、`science.pythonExecutable` 和 `science.chemistryPythonExecutable` 分别控制开关、基础 Python 和 RDKit Python。`COWORK_SCIENCE_TOOLS`、`COWORK_SCIENCE_PYTHON`、`COWORK_SCIENCE_CHEMISTRY_PYTHON` 逐字段覆盖，界面锁定环境管理的字段。
+
+解释器可用绝对路径或单独命令名。清空基础路径恢复 `python3`，清空 RDKit 路径继承基础环境。显式检查验证草稿解释器、依赖版本和固定 RDKit 样例；保存不执行检查。
+
+任务固定已选目录和解释器。修改供新任务使用，开关在下次启动会话进程时生效；关闭后恢复旧任务会保留历史接口，但计算返回不可用。安装可取消并复用已有环境，成功后仅填入草稿，失败保留原配置与环境。安装和依赖见 [科学工具](scientific-tools.md)，HTTP 契约见 [Product API](product-api.md#scientific-environment-settings)。
+
+## 网络代理
+
+| JSON 字段    | 环境变量                      |
+| ------------ | ----------------------------- |
+| `httpProxy`  | `HTTP_PROXY` / `http_proxy`   |
+| `httpsProxy` | `HTTPS_PROXY` / `https_proxy` |
+| `noProxy`    | `NO_PROXY` / `no_proxy`       |
+
+环境变量优先。代理地址仅接受 HTTP(S) URL，例如 `http://proxy.example:8080`。`localhost`、`127.0.0.1` 和 `::1` 始终加入绕过列表，其余条目保留。
+
+设置适用于 CLI Main、headless CLI、子智能体、模型发现、连接测试和独立视觉请求，支持两种模型协议。会话、视觉分析和测试在结束或取消后释放自己的代理连接。交互 Pi 使用 SDK 环境代理；没有模型或视觉专用代理变量。带认证的代理地址属于私有配置。
+
+## 路径与环境变量
+
+| 环境变量                                              | 用途                                                        |
+| ----------------------------------------------------- | ----------------------------------------------------------- |
+| `COWORK_CONFIG`                                       | 显式配置文件                                                |
+| `COWORK_API_BASE` / `COWORK_MODEL` / `COWORK_API_KEY` | 模型地址、ID、密钥                                          |
+| `COWORK_MODEL_API`                                    | 与 `api` 取值相同                                           |
+| `COWORK_THINKING_FORMAT`                              | 当前进程的思考格式                                          |
+| `COWORK_SUPPORTS_IMAGES`                              | `1` / `true` 开启，`0` / `false` 关闭                       |
+| `COWORK_REASONING_EFFORT`                             | 推理强度                                                    |
+| `COWORK_SUPPORTS_REASONING_EFFORT`                    | `1` / `true` 开启，`0` / `false` 禁止强度字段               |
+| `COWORK_SUPPORTS_PROMPT_CACHE_KEY`                    | `1` / `true` 开启，`0` / `false` 关闭第三方缓存键           |
+| `ATRIA_HOME`                                          | App、CLI、Web 用户目录，默认 `~/.atria`；显式路径覆盖仍优先 |
+| `COWORK_DESKTOP_DATA`                                 | 独立桌面数据目录                                            |
+| `COWORK_WORKSPACE`                                    | 持久任务数据目录，默认 `~/.atria/workspace`                 |
+| `COWORK_PROJECT_DIR`                                  | Main 文件与命令的项目目录                                   |
+| `PI_CODING_AGENT_DIR`                                 | Pi 状态目录，默认 `~/.atria/pi`                             |
+| `COWORK_TASK_ID`                                      | 固定 Main Task，恢复时配合原 Pi 会话                        |
+| `COWORK_UI_PORT`                                      | 源码 Web 端口，默认 3880                                    |
+
+各入口运行状态默认位于 `~/.atria/runtime`。项目设置保存 `projectName`、`projectId`、`projectDirectory`，首条消息才创建会话。项目工作目录与 `workspaceRoot` / `COWORK_WORKSPACE` 下的内部存储相互独立。
+
+显式旧 `.tmp` / `.tmp/pi-agent` 路径继续生效，源码入口不再隐式使用仓库 `.tmp`。App 正式版与开发版共用数据及单实例锁。`COWORK_DESKTOP_DATA` 和 `ATRIA_HOME` 显式覆盖会跳过旧桌面数据自动复制；空的默认桌面目录会复制对应旧配置，保留来源。
+
+`coworkos data paths` 显示实际路径。已有目录可用 `coworkos data import --from PATH --kind desktop --name old-app` 导入其他桌面数据，源码工作区用 `--kind workspace`。导入保留来源，拒绝重复名称，并在历史目录中登记独立工作区。详见 [持久数据布局](task-workspace-layout.md)。
+
+## 界面语言
+
+在“设置 → 通用 → 语言”选择“简体中文”或“English”，默认简体中文。切换前会保存应用文档、检查冲突并保存会话与人工回复草稿；无法安全保存时保留当前界面。切换后刷新页面生效。
+
+Web 将偏好按站点保存在 `localStorage` 的 `atria.language`；App 将偏好保存在用户数据目录的 `language.json`，不受本地后端随机端口影响。此设置用于共用 App/Web 主界面、设置、会话和工作台操作；不修改已有用户内容、模型回复语言、CLI、系统原生弹窗或第三方嵌入编辑器的独立语言设置。后端和外部工具返回的原始错误保留原文。
+
+## 外观存储
+
+App 将外观偏好保存在用户数据目录的 `appearance.json`，Web 按浏览器站点保存。缺失或无效偏好使用“跟随系统”，已有手动选择保留。浅色模式保留星云、星空与多智能体星系；系统高对比度下隐藏装饰画布。
+
+## 高级运行限制
+
+下表为底层 Runtime 默认值；文件和环境覆盖优先。新连接的输出上限为 8192，推理设置为 `off` / `false`，已有连接不自动改写。
+
+| JSON 字段                   | 环境变量                              | Runtime 默认值                                   |
+| --------------------------- | ------------------------------------- | ------------------------------------------------ |
+| `mainMaxTurns`              | `COWORK_MAIN_MAX_TURNS`               | 2000                                             |
+| `subagentMaxTurns`          | `COWORK_MAX_TURNS`                    | 200                                              |
+| `mainMaxTokens`             | `COWORK_MAIN_MAX_TOKENS`              | 65536；新连接 8192                               |
+| `subagentMaxTokens`         | `COWORK_MAX_TOKENS`                   | 65536；新连接 8192                               |
+| `contextWindow`             | `COWORK_CONTEXT_WINDOW`               | 256000 token                                     |
+| `mainTimeoutMs`             | `COWORK_MAIN_TIMEOUT_MS`              | 0，不限时                                        |
+| `subagentTimeoutMs`         | `COWORK_SUBAGENT_TIMEOUT_MS`          | 0，不限时；旧 `COWORK_TIMEOUT_MS` 仅兼容子智能体 |
+| `commandTimeoutMs`          | `COWORK_COMMAND_TIMEOUT_MS`           | 1800000（30 分钟）；0 不限时                     |
+| `maxAttempts`               | `COWORK_MAX_ATTEMPTS`                 | 3，含首次委派；1 关闭委派重试                    |
+| `subagentQuestionTimeoutMs` | `COWORK_SUBAGENT_QUESTION_TIMEOUT_MS` | 180000（3 分钟）；0 关闭向 Main 提问             |
+| `humanAnswerTimeoutMs`      | `COWORK_HUMAN_ANSWER_TIMEOUT_MS`      | 60000（1 分钟）                                  |
+| `subagentMaxQuestions`      | `COWORK_SUBAGENT_MAX_QUESTIONS`       | 3                                                |
+
+超时单位为毫秒。`maxAttempts` 是委派预算，独立于模型请求重试。长任务与重试行为见 [运行时参考](runtime-reference.md#请求重试与上下文恢复)。
+
+实现：[配置读取](../src/runtime/config.ts)、[运行设置](../src/runtime/runtime-settings.ts)、[连接参数](../src/runtime/model-profile.ts)。回归：[CLI 配置](../test/cli-onboarding.test.js)、[模型协议](../test/model-protocol.test.js)。

@@ -1,0 +1,13 @@
+@import url("./math/generated/katex.min.css");
+
+.markdown-body .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+}
+
+.markdown-body .math-fallback {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

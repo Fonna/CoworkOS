@@ -1,0 +1,97 @@
+import { test, expect } from "@playwright/test";
+import { startDashboard } from "../test/dashboard-fixture.mjs";
+
+test("window access keeps desktop-only controls behind its settings row and preserves the draft", async ({
+  page
+}) => {
+  const dashboard = await startDashboard();
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  try {
+    await page.goto(dashboard.base);
+    await page.locator("#composer-input").fill("尚未发送的测试草稿");
+    for (const width of [1440, 1280, 474, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      if (!(await page.locator("#user-menu-button").isVisible()))
+        await page.getByRole("button", { name: "切换侧栏", exact: true }).click();
+      await page.locator("#user-menu-button").click();
+      const settings = page.getByRole("dialog", { name: "设置", exact: true });
+      await expect(settings).toBeVisible();
+      const access = settings.locator(".computer-setting");
+      await expect(access).toHaveJSProperty("open", false);
+      await access.locator("summary").focus();
+      await page.keyboard.press("Enter");
+      await expect(access).toHaveJSProperty("open", true);
+      await expect(settings.locator(".computer-setting button")).toHaveCount(3);
+      for (const button of await settings.locator(".computer-setting button").all()) {
+        await expect(button).toBeDisabled();
+        await expect(button).toBeHidden();
+      }
+      await expect(page.locator("[data-computer-state]")).toContainText("桌面版");
+      await expect(page.locator("[data-computer-request]")).toHaveCount(0);
+      await expect(
+        page.locator("#computer-access-dialog, [data-computer-window], [data-computer-mode]")
+      ).toHaveCount(0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      const box = await settings.boundingBox();
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      await access.locator("summary").click();
+      await page.keyboard.press("Escape");
+      await expect(settings).toBeHidden();
+      await expect(page.locator("#user-menu-button")).toBeFocused();
+      await expect(page.locator("#composer-input")).toHaveValue("尚未发送的测试草稿");
+    }
+    await expect(page.locator("#session-menu-button")).toBeVisible();
+    await expect(page.locator("#details-modal, #details-close")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "选择窗口", exact: true })).toHaveCount(0);
+    const tasks = (await (await page.request.get(`${dashboard.base}/api/tasks`)).json()).tasks;
+    expect(tasks.filter((task) => task.taskId !== "workspace")).toHaveLength(0);
+    expect(errors).toEqual([]);
+  } finally {
+    await dashboard.stop();
+  }
+});
+
+test("native window permission actions remain available on demand without granting access on open", async ({
+  page
+}) => {
+  const dashboard = await startDashboard();
+  try {
+    await page.addInitScript(() => {
+      window.computerOperations = [];
+      window.bookmanDesktop = {
+        onPrepareClose() {},
+        modelStatus: async () => ({ configured: true, model: "fixture" }),
+        webSearchStatus: async () => ({ enabled: false, provider: "off" }),
+        computerUse: async (request) => {
+          window.computerOperations.push(request.operation);
+          return { enabled: false };
+        }
+      };
+    });
+    await page.route("**/api/computer/status", (route) =>
+      route.fulfill({
+        json: { available: true, screenRecording: true, accessibility: true, postEventAccess: true }
+      })
+    );
+    await page.route("**/api/computer/access", (route) =>
+      route.fulfill({ json: { policy: { enabled: false }, paused: false } })
+    );
+    await page.goto(dashboard.base);
+    await page.getByRole("button", { name: "设置", exact: true }).click();
+    const settings = page.getByRole("dialog", { name: "设置", exact: true });
+    const access = settings.locator(".computer-setting");
+    await expect(access.getByRole("button", { name: "开启窗口访问", exact: true })).toBeHidden();
+    await access.locator("summary").click();
+    await expect(access.getByRole("button", { name: "开启窗口访问", exact: true })).toBeEnabled();
+    await expect(access.getByRole("button", { name: "屏幕录制已开启", exact: true })).toBeDisabled();
+    await expect(access.getByRole("button", { name: "辅助功能已开启", exact: true })).toBeDisabled();
+    await expect(access.getByText("允许所有对话观察并操作全部应用窗口。", { exact: true })).toBeVisible();
+    const operations = await page.evaluate(() => window.computerOperations);
+    expect(operations.length).toBeGreaterThan(0);
+    expect(operations.every((operation) => operation === "policy-status")).toBe(true);
+  } finally {
+    await dashboard.stop();
+  }
+});

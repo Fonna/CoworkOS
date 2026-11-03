@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Installation and troubleshooting / 安装与排错
+    url: https://github.com/ignorejjj/Atria-Cowork/blob/main/docs/getting-started.md
+    about: 查看安装要求、配置和常见错误；仍能复现的问题请用缺陷报告。

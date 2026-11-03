@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "definitionStatus": "planned",
+  "id": "CASE-06",
+  "title": "取消后恢复原 Task 且不重复已完成的副作用",
+  "owner": "repository-maintainer",
+  "priority": "P0",
+  "capabilities": ["runtime.resume", "runtime.cancel", "runtime.side_effect_evidence"],
+  "entrypoints": ["cli", "app"],
+  "datasetVersion": "core-v1-proposed",
+  "preconditions": {
+    "isolation": "fresh-project-user-workspace-and-indexes",
+    "requiredDependencies": [],
+    "requiredPermissions": [],
+    "fixtureId": "append-marker-then-block",
+    "fixtureImplementation": null,
+    "oracleAccess": "outside-agent-writable-paths"
+  },
+  "userPrompt": "先创建 marker.txt，写入一次 done，然后完成慢速数据任务并交付 report.txt。恢复时先核对已有结果，只执行未完成步骤。",
+  "steps": [
+    {
+      "action": "launch-installed-entrypoint",
+      "capture": ["sessionId", "taskId", "runId"]
+    },
+    {
+      "action": "submit-user-prompt"
+    },
+    {
+      "action": "await-side-effect-and-durable-tool-result",
+      "markerLine": "done"
+    },
+    {
+      "action": "await-blocking-step-started"
+    },
+    {
+      "action": "cancel-through-user-entrypoint"
+    },
+    {
+      "action": "assert-processes-stopped"
+    },
+    {
+      "action": "exit-and-launch-new-process"
+    },
+    {
+      "action": "resume-same-conversation"
+    },
+    {
+      "action": "await-terminal-state"
+    },
+    {
+      "action": "run-independent-oracles"
+    }
+  ],
+  "expectations": [
+    {
+      "oracle": "identity-equals-captured",
+      "fields": ["sessionId", "taskId"]
+    },
+    {
+      "oracle": "marker-lines-equal",
+      "lines": ["done"]
+    },
+    {
+      "oracle": "no-cancellable-processes-after-stop"
+    },
+    {
+      "oracle": "report-semantic-match",
+      "expectedFixtureId": "slow-task-expected-report"
+    },
+    {
+      "oracle": "artifact-byte-hash-equals-download"
+    },
+    {
+      "oracle": "task-run-outcome-consistent",
+      "finalTaskState": "completed"
+    },
+    {
+      "oracle": "private-canary-not-in-shared-evidence"
+    },
+    {
+      "oracle": "conversation-turn-projection-matches-events",
+      "preservePartialOutput": true,
+      "noCrossTurnStatusLeak": true
+    }
+  ],
+  "oracleImplementations": null,
+  "variants": [
+    {
+      "id": "CASE-06/cli/fixture",
+      "entrypoint": "cli",
+      "platforms": ["linux", "macos"],
+      "modelMode": "scripted-local-provider",
+      "layer": "L4",
+      "profiles": ["local-release-cli"],
+      "budget": {
+        "totalSeconds": 120,
+        "cleanupSeconds": 10,
+        "externalModelCalls": 0
+      },
+      "implementation": null,
+      "dependsOnStages": ["basic", "cli"]
+    },
+    {
+      "id": "CASE-06/app/fixture",
+      "entrypoint": "app",
+      "platforms": ["macos-arm64"],
+      "modelMode": "scripted-local-provider",
+      "layer": "L5",
+      "profiles": ["local-release-app"],
+      "budget": {
+        "totalSeconds": 180,
+        "cleanupSeconds": 15,
+        "externalModelCalls": 0
+      },
+      "implementation": null,
+      "dependsOnStages": ["basic", "app"]
+    },
+    {
+      "id": "CASE-06/cli/live",
+      "entrypoint": "cli",
+      "platforms": ["linux", "macos"],
+      "modelMode": "real-provider-free-planning",
+      "layer": "L6",
+      "profiles": ["local-release-capability"],
+      "sampling": {
+        "independentRunsPerCandidate": 3,
+        "keepEveryAttempt": true
+      },
+      "budget": {
+        "totalSeconds": 600,
+        "cleanupSeconds": 15,
+        "maxModelCalls": 30,
+        "maxTokens": 100000,
+        "maxCostUsd": 5
+      },
+      "implementation": null,
+      "dependsOnStages": ["basic", "cli"]
+    },
+    {
+      "id": "CASE-06/app/live",
+      "entrypoint": "app",
+      "platforms": ["macos-arm64"],
+      "modelMode": "real-provider-free-planning",
+      "layer": "L6",
+      "profiles": ["local-release-capability"],
+      "sampling": {
+        "independentRunsPerCandidate": 3,
+        "keepEveryAttempt": true
+      },
+      "budget": {
+        "totalSeconds": 600,
+        "cleanupSeconds": 15,
+        "maxModelCalls": 30,
+        "maxTokens": 100000,
+        "maxCostUsd": 5
+      },
+      "implementation": null,
+      "dependsOnStages": ["basic", "app"]
+    }
+  ],
+  "failurePolicy": {
+    "missingRequiredPrecondition": "blocked",
+    "missingImplementation": "not_implemented",
+    "deterministicRetry": "diagnostic-only-keep-first-result",
+    "unknownSideEffect": "require-verification-before-replay"
+  },
+  "evidence": [
+    "build-and-package-hashes",
+    "normalized-events",
+    "redacted-stdout-stderr",
+    "process-tree",
+    "independent-oracle-results",
+    "artifact-hashes",
+    "app-trace-when-app",
+    "actual-input-consumption-proof",
+    "per-turn-display-receipts"
+  ],
+  "cleanup": [
+    "stop-owned-process-groups",
+    "close-fixture-provider",
+    "scan-and-preserve-redacted-failure-evidence",
+    "remove-isolated-root"
+  ],
+  "notes": "这是格式示例，所有 runner、fixture 和 oracle 均待实现。预算为建议初值，按实际模型价格与运行基线调整；不把副作用后收据前崩溃的未知命令自动重放作为成功行为。 stage 是功能归属；variant 中的 layer 只表示测试实现方式，不是目录层级。CLI/App 变体分别依赖 basic+cli、basic+app。",
+  "stage": "cases",
+  "stageName": "五 具体用户 case 测试",
+  "dependsOnStages": ["basic"],
+  "interactionSchedule": {
+    "kind": "explicit_stop_then_resume",
+    "triggerPhase": "tool_running",
+    "triggerBarrier": "blocking-step-started",
+    "inputHandling": ["unsubmitted-draft-is-not-a-command", "capture-task-run-and-input-identity"],
+    "requiredReceipts": [
+      "stop-request",
+      "stop-settled",
+      "next-turn-actual-model-input",
+      "per-turn-visible-history"
+    ],
+    "deliveryAndEffectAreSeparate": true,
+    "note": "新增交互 case 可替换为 interject、revise-requirement、answer-question 或 next-turn；阶段与支持语义逐项登记。"
+  }
+}

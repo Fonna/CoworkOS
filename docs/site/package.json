@@ -1,0 +1,18 @@
+{
+  "name": "atria-documentation",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "build": "node ../../scripts/docs-site.mjs",
+    "preview": "node ../../scripts/docs-site.mjs --serve"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "marked": "18.0.11",
+    "mermaid": "11.17.2",
+    "sanitize-html": "2.18.1"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "coworkos-readme-hero",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "node build.mjs --serve",
+    "render": "node render.mjs"
+  },
+  "dependencies": {
+    "ogl": "1.0.11",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "playwright-core": "1.63.0"
+  }
+}

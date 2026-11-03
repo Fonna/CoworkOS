@@ -1,0 +1,54 @@
+name: Bug report / 缺陷报告
+description: Report a reproducible installation, CLI, App or harness issue.
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        每个独立问题提交一份报告；请先查看是否已有相同反馈。
+        只提供脱敏错误，不要上传 API Key、完整私有配置、用户任务或录音。
+  - type: input
+    id: version
+    attributes:
+      label: CoworkOS version / 版本
+      description: CLI 运行 atria --version；App 查看版本。源码用户同时填写 commit。
+      placeholder: 0.1.2-beta.1
+    validations:
+      required: true
+  - type: dropdown
+    id: entry
+    attributes:
+      label: Entry and installation / 入口与安装方式
+      options:
+        - Mac App / DMG
+        - CLI / tgz
+        - Source CLI / 源码 CLI
+        - Source Web / 源码 Web
+        - Source App / 源码 App
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: OS version and chip/architecture; Node/npm versions for CLI/source, installation or upgrade details.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps and expected behavior / 复现步骤与期望结果
+      description: Include minimal commands or UI actions and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs and recovery / 日志与恢复情况
+      description: Include relevant errors and whether retry/restart helped. Say if drafts, documents or history were affected; preserve original data. Remove keys, private documents and personal paths.
+  - type: textarea
+    id: checks
+    attributes:
+      label: Checks run / 已执行检查
+      description: Contributors can include doctor, focused tests or verify results. Mark unexecuted checks explicitly.

@@ -1,0 +1,17 @@
+{
+  "baseUrl": "https://your-compatible-endpoint.example/v1",
+  "api": "openai-responses",
+  "apiKey": "replace-with-your-api-key",
+  "model": "your-model-id",
+  "supportsImages": false,
+  "reasoningEffort": "off",
+  "thinkingFormat": "auto",
+  "supportsReasoningEffort": false,
+  "supportsPromptCacheKey": false,
+  "workspaceRoot": ".tmp",
+  "mainMaxTokens": 8192,
+  "subagentMaxTokens": 8192,
+  "webSearch": {
+    "provider": "exa"
+  }
+}

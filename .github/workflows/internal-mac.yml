@@ -1,0 +1,27 @@
+name: Internal Mac package
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    timeout-minutes: 30
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci
+      - run: npm run desktop:dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CoworkOS-mac-arm64-internal
+          path: |
+            release/*.dmg
+            release/*.sha256
+          if-no-files-found: error

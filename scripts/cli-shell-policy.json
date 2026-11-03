@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "sdkVersion": "0.87.1",
+  "entry": "dist/bundle/cli.js",
+  "files": {
+    "dist/bundle/cli-runtime.js": "9ca136a7caa977d936aa789d7448a3dfb17851677ff5ac8c0dbcf23c31a02142",
+    "dist/bundle/chunks/chunk-OJP47DM6.js": "81c81a21ec81e84200205f561687408ff5e3738fbbbb3c2a6c186b348d376020"
+  },
+  "changes": [
+    {
+      "id": "tool-environment",
+      "file": "dist/bundle/cli-runtime.js",
+      "original": "process.env.AI_AGENT=\"pi\"",
+      "replacement": "process.env.AI_AGENT=\"coworkos\""
+    },
+    {
+      "id": "agent-bash-output",
+      "file": "dist/bundle/chunks/chunk-OJP47DM6.js",
+      "original": "tempFilePrefix:\"pi-bash\"",
+      "replacement": "tempFilePrefix:\"atria-bash\""
+    },
+    {
+      "id": "manual-bash-output",
+      "file": "dist/bundle/chunks/chunk-OJP47DM6.js",
+      "original": "`pi-bash-${id}.log`",
+      "replacement": "`atria-bash-${id}.log`"
+    }
+  ]
+}

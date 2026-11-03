@@ -1,0 +1,195 @@
+# Mac 构建、发布与验收
+
+[English](en/mac-release.md) | 中文
+
+当前 App 目标是 macOS 14+、Apple Silicon（arm64）Mac。Electron 自带运行时，用户无需 Node、npm 或仓库源码。当前未提供 Developer ID 签名、公证或 Intel 构建；更新安装方式取决于包签名与已发布更新源。候选包与 Release 说明必须明确这些限制。支持范围见 [路线图](../ROADMAP.md)，用户安装与配置见 [安装指南](getting-started.md) 和 [配置指南](configuration.md)。
+
+## 构建候选包
+
+在支持的 Mac 构建机上准备 Node 和 npm，构建离线完整包时另需 uv。使用根锁文件安装依赖：
+
+```sh
+npm ci
+npm run verify
+npx playwright install chromium
+npm run test:browser
+npm run desktop:pack
+npm run test:desktop
+npm run desktop:dist
+# 如需验收内部基础包，单独制作；不替代默认小包的验收。
+npm run test:desktop:base
+```
+
+`desktop:pack` 生成 `.tmp/release/mac-arm64/CoworkOS.app`；`desktop:dist` 使用系统 hdiutil 创建、校验 `release/CoworkOS-<version>-mac-arm64.dmg` 并写入 SHA-256。没有 Developer ID 证书时使用 ad-hoc 签名并严格验证 App，仅生成 DMG；签名条件满足后才生成更新 ZIP/feed。以脚本实际输出为准；本地构建不会上传或发布。构建 App 放在隐藏的 `.tmp` 下，避免成为 Spotlight/Launchpad 中重复的安装项。
+
+`npm run test:desktop` 调用的 [通用打包 smoke](../scripts/desktop-smoke.mjs) 读取候选 App 的包元数据决定验收范围。默认小包验证宿主、TXT/PPT 新建编辑保存、PPT 重启恢复、JSCAD、Pi 与本地模型、草稿、退出/恢复及搬移升级；仅在测试自己的隔离数据目录中预先停用 CAD/Blender，避免重复下载大型组件，并明确输出这两项原生检查的 `SKIPPED`。
+
+完整包继续执行内置 CadQuery/BRep/STEP 与 Blender 工程的原生分支。通用宿主 smoke 通过不能记作小包原生 CAD/Blender 已通过。
+
+默认小包还需执行启动准备专项，使用隔离本地 HTTP 组件和模型验证下载中的宿主可用性、进度、后端重启及退出取消/清理：
+
+```sh
+ATRIA_PUBLIC_COMPONENTS_SMOKE=1 ATRIA_DESKTOP_APP=.tmp/release/mac-arm64/CoworkOS.app npx playwright test e2e/public-components-desktop.spec.js --workers=1 --output .tmp/public-components-desktop
+```
+
+该专项不证明真实公开下载或原生内核可用。另用无凭据的新组件目录完成 GitHub 冷安装，实际生成 CAD STEP 和 Blender GLB，并核对重启/兼容宿主版本复用；按下面的组件发行流程分别记录结果。
+
+默认 App 保留 PPTist 编辑器，不内嵌 CadQuery/Python 与 Blender。`desktop:pack` / `desktop:dist` 构建小包，首次启动后台从固定的公开组件 Release 下载并校验这两项运行时；用户不需要账号、token、Python 或 uv。下载期间普通会话可继续，设置中查看进度、诊断和重试。兼容受管组件跨 App 更新复用。
+
+显式 `desktop:pack:full` / `desktop:dist:full` 先准备全部资源并生成离线完整包；`:base` 排除 CAD、Blender、PPTist 且不自动下载，仅供内部缺失组件测试。各自边界见 [CAD](cad-integration.md)、[Blender](blender-integration.md) 和 [应用与组件](optional-components.md)。小包自动下载、完整包离线执行必须分别验收，旧包结果不能替代本次发行。
+Pi 扩展与子进程使用真实文件路径，打包关闭 asar。白名单排除测试、私有配置、工作空间、浏览器产出和开发依赖；发布者仍需审查最终包内容、权限与校验值。不能仅依赖 `.gitignore` 排除密钥。
+
+## 版本 tag 与 Release 草稿
+
+[Release Mac 工作流](../.github/workflows/release-mac.yml) 在推送 `v<version>` tag（含 beta/rc）时检出该提交，校验 `package.json`、`package-lock.json` 和 tag 的版本一致，使用 macOS 15 arm64、Node 24、uv 构建 DMG/CLI 候选及校验文件，并上传到对应 GitHub Release 草稿，携带发行来源清单、SHA-256 和本版发行说明。显式配置 Developer ID 签名且验证通过时，另上传 ZIP、SHA-256 与 Mac 更新 feed。
+
+它只做版本校验、打包和上传；本地完整回归须在推送前完成。默认测试版使用 ad-hoc 签名、未公证；预发布版本自动标记 Pre-release，工作流不自动发布。
+
+以下以 `0.1.2-beta.7` 为例，维护者先审查并提交全部发布所需源码、文档与验证，再建立 tag：
+
+```sh
+npm version 0.1.2-beta.7 --no-git-tag-version
+# 同时暂存本次发布需要的其他源码和文档。
+git add package.json package-lock.json
+git diff --cached --stat
+git commit -m "Release 0.1.2-beta.7"
+git tag v0.1.2-beta.7
+git push origin HEAD
+git push origin v0.1.2-beta.7
+```
+
+`GITHUB_TOKEN` 由 Actions 提供，工作流需要 `contents: write`，不在仓库存放个人 token。检查 Release Mac DMG 的实际日志，然后在 Releases 核对草稿版本、tag、DMG/CLI、校验文件、说明与安装结果；签名发行另核对 ZIP/feed。
+
+维护者审阅后手动点击 Publish release；ad-hoc 测试包应在说明中标明无 Developer ID/公证的限制，并按发布策略选择 Pre-release。
+
+手动 Run workflow 可输入已有 `vX.Y.Z` tag。已有草稿可补跑并替换附件；已发布同版本的附件不可覆盖，修复需新版本 tag。不要移动 tag 绕过校验。
+
+仅需内部候选时使用 [Internal Mac package](../.github/workflows/internal-mac.yml)，它上传 Actions 产物而不创建 Release。
+
+主分支保存最新通过评审的集成代码，用户版本以 tag/Release 为准；反馈与发行清单命令见 [版本管理](beta-release-process.md)。版本守卫见 [release-metadata](../scripts/release-metadata.mjs)，本地回归为 `test/release-metadata.test.js`。
+
+## 公开组件发行
+
+大组件与 App 分开发布。组件放在公开的 [Atria-Components](https://github.com/ignorejjj/Atria-Components/releases)；产品代码仓库保持私有，App 从 Atria-Releases 公开分发，也可继续把小 DMG 发到测试群；安装后的组件下载匿名访问独立公开 Release。
+
+当前组件协议 v1 固定 `components-v1` tag，清单使用 `hostVersion: "*"` 允许协议兼容的 App 复用。版本清单、归档、大小和 SHA-256 共同绑定发行；不读取任意最新版。更换运行时需发布新 tag 并更新程序内固定来源，不覆盖已发布附件或移动 tag。
+
+在 Apple Silicon 构建机执行：
+
+```sh
+npm run components:pack:public
+node scripts/prepare-component-sources.mjs
+ATRIA_COMPONENT_SOURCES_DIR=.tmp/component-sources npm run components:publish
+```
+
+源码准备只在维护者构建机运行，需要网络、`gh` 和 `curl`，不进入用户安装流程。`SOURCE_MANIFEST.json` 列出随 Release 提供的源码/许可材料和每个文件的 `file`、`sha256`、`bytes`、上游来源。Blender 提供固定版本源码与 4.5 系列依赖源码；CAD 提供 OCCT、OCP、CasADi 和相关依赖源码/构建规则，保留原始版权与许可。详见 [第三方声明](../THIRD_PARTY_NOTICES.md)。
+
+发布工具先校验全部本地组件及源码材料，上传草稿后发布到独立公开仓库；已发布版本拒绝覆盖。
+
+维护者本地使用现有 GitHub 授权；Actions 跨仓库发布需在产品源码仓库设置仅能写组件仓库的 `COMPONENTS_RELEASE_TOKEN` secret。不得把发布 token 编入 App、清单或日志，普通用户无需凭据。
+
+发布后使用无凭据的新组件目录验收真实清单与下载、校验、安装及二次启动复用；完整组件下载可能耗时，记录实际结果。一次真实下载通过不代表不同网络可达性、干净机器、签名或公证通过。
+
+## 应用内更新与发布产物
+
+“设置 → 更新”供开发 App 和已安装 App 检查与执行更新。启动时只检查一次；下载/应用需要用户主动点击，运行中的任务与未保存草稿先按桌面宿主门槛处理。源码开发 App 跟随 Git upstream，独立准备完整构建并重启；脏检出/分叉会拒绝，详见 [源码更新](development.md#更新源码检出)。
+
+新构建的安装版从 npm registry 查询 `coworkos-desktop-darwin-arm64` 的 `latest` 或 `beta` dist-tag，下载对应 tarball，并依次校验 registry SRI、包内文件清单和 DMG SHA-256。App 版本、平台包版本和 DMG 清单版本必须一致；版本比较禁止降级。CLI 的首次安装命令也读取同一个平台包，因此桌面安装、应用内更新和 CLI 更新都使用 npm registry。
+
+旧 App 的 GitHub 更新地址固化在旧二进制中，发布 npm 包不会改变它。保留旧 GitHub 更新发布流程用于尚能访问该来源的历史 App；无法使用旧来源的用户需按 [安装指南](getting-started.md) 一次性迁移。不要将这次迁移描述为自动升级。
+
+用户点击“下载更新”后仍可编辑；完成后按钮变为“重启并安装”。当前 ad-hoc 包在用户可写安装目录中使用受管替换：校验 DMG/候选 App、同父目录准备候选、保存草稿并等待任务结束、退出后原子替换、保留旧 App 备份并重新启动。失败时保留或恢复旧版；不可写目录提示使用系统安装方式，不自动提权或删除隔离属性。Developer ID 包仍可沿用原生 ZIP 更新，签名与公证验收单独记录。
+
+| 产物                                                     | 用途                                                       |
+| -------------------------------------------------------- | ---------------------------------------------------------- |
+| `coworkos-cli-<version>.tgz` 与 `.sha256`                | CLI 在原全局 prefix 内准备、校验启动后替换程序包           |
+| `CoworkOS-<version>-mac-arm64.dmg` 与 `.sha256`          | App 下载校验、准备同父候选并在退出后安装；也供首次手动安装 |
+| `CoworkOS-<version>-mac-arm64.signing.json` 与 `.sha256` | 精确记录候选 App 的签名状态                                |
+| `atria-release-<version>.json` 与 `.sha256`              | 原始私有源码仓库/tag/commit 与发行产物来源记录             |
+
+下一版 npm 安装器和 App 更新包按以下顺序准备并发布。平台 tgz 只包含对应 DMG、许可和版本/校验清单；CLI tgz 包含安装器代码。先完成候选 App 的回归、DMG 验收与隔离 npm 安装，再发布桌面包，匿名读取 registry 元数据并验证完整安装后，发布 CLI 包：
+
+```sh
+VERSION=0.1.1
+ATRIA_DESKTOP_NPM_PACKAGE_DIR="$PWD/.tmp/npm-release" npm run desktop:npm:pack
+ATRIA_PACKAGE_DIR="$PWD/.tmp/npm-release" npm run npm:pack
+npm publish ".tmp/npm-release/coworkos-desktop-darwin-arm64-${VERSION}.tgz" --access public
+npm publish ".tmp/npm-release/coworkos-app-${VERSION}.tgz" --access public
+```
+
+两个包均不可覆盖已发布版本。`latest` / `beta` tag 由包的 `publishConfig` 选择；发布后用匿名 `npm view` 核对版本、平台限制、dist-tag 和完整性信息。平台包发布后、CLI 发布前，应先通过真实 npm 下载路径验收 installer 和 App 更新 provider。若当前版本属于旧 GitHub 更新客户端，还需按旧发布流程构建兼容迁移版本；新 npm 发布本身不会改写旧 App 的下载地址。
+
+GitHub DMG/CLI Release 与静态更新指针只保留给旧客户端兼容和明确的手动归档分发。对已审核的干净 tag，仍可执行 `node scripts/release-artifacts.mjs` 生成来源清单，再运行 `npm run release:publish:public`；发布器通过旧内容 SHA 比较更新 `updates/coworkos-latest.json`，不可覆盖已发布附件或回退指针。
+
+已发布附件与 tag 不覆盖；更新指针失败时保留已发布的固定版本，处理并发或网络原因后，以 `npm run release:publish:public -- --resume-pointer` 只核对既有附件并恢复指针更新。
+
+维护者本机使用已有 `gh` 授权；跨仓库 Actions 需单独配置只写分发仓库的发布授权，不能将 token 放进 App。
+
+公开仓库 Git 分支只存下载说明和更新清单；不推送开发检出、用户配置、任务、临时日志或私有测试证据。默认 ad-hoc 发行仅上传上述八个文件。Developer ID ZIP/feed 的跨仓库发布需显式扩展白名单并重新验收，当前公开发布器拒绝不支持的组合，不能丢弃签名产物后冒充完整签名发行。
+
+构建机安装维护者自己的 Developer ID Application 证书后，通过 `CSC_NAME` 显式选择证书名称或团队 ID；名称不含 `Developer ID Application:` 前缀，符合 [electron-builder 签名规则](https://www.electron.build/v26/docs/features/code-signing/code-signing-mac/)。设置后强制签名；签名失败、ad-hoc 或开发证书都不能生成更新 ZIP。未设置时关闭自动寻找签名身份，并移除本次版本残留的 ZIP/feed，保留 DMG 构建。
+
+GitHub 工作流可选读取仓库变量 `CSC_NAME`、仓库 secrets `CSC_LINK` 与 `CSC_KEY_PASSWORD`；未配置时仍为未签名 DMG。证书、私钥与公证凭据不进仓库；当前未完成公证配置与生产安装验收。
+
+签名验证通过后，脚本才对 App 使用 ditto 生成并检查 ZIP，根据实际 ZIP 写入 SHA-256 和 [Squirrel.Mac 静态 JSON feed](https://github.com/Squirrel/Squirrel.Mac#update-file-json-format)。feed 的 URL 使用 `ATRIA_UPDATE_REPOSITORY`、`GITHUB_REPOSITORY` 或包 repository 指定的 GitHub 仓库，并绑定 `v<version>` 资产；版本与 lock/tag 必须一致。
+
+生成签名 ZIP/feed仍需完成公证、Gatekeeper 与真实旧版→新版安装验收；当前默认 ad-hoc 测试包使用经校验的 DMG 受管安装流程。草稿审查后由维护者手动 Publish；更新功能不自动推送 tag 或发布 Release。
+
+CLI/DMG 下载通过发行 helper 验证版本、资产来源、大小及 SHA-256；签名 ZIP 由 Electron 原生更新机制下载并核验签名。失败时报告原因并保留用户数据；不可把下载完成等同于安装完成。Web renderer 只传检查/执行动作，真实路径、URL、命令与保存/退出决策由可信宿主管理。
+
+实现见 [桌面更新](../desktop/updates.cjs)、[npm 桌面包下载](../scripts/update-npm-desktop.mjs)、[旧版发行下载](../scripts/update-release.mjs)、[feed 生成与签名守卫](../scripts/update-feed.mjs)，对应回归见 `test/desktop-updates.test.js`、`test/update-npm-desktop.test.js`、`test/package-desktop-npm.test.js`、`test/update-release.test.js`、`test/update-feed.test.js`、`e2e/desktop-updates.spec.js`；最终签名更新另验。
+
+## 安装、数据与升级
+
+用户从 DMG 拖入 Applications 并启动，按安装指南配置自己的模型连接。模型密钥由 Electron safeStorage 加密保存，renderer 不读回密钥，加密不可用时拒绝保存。未配置模型也可编辑和保存支持的本地文档。
+
+用户数据默认位于与 CLI / Web 共用的 `~/.atria/`，包含工作空间、Pi 状态、连接、加密密钥和日志；`ATRIA_HOME` 整体覆盖，外部项目与显式覆盖目录按实际原文件一起备份。默认布局与旧桌面目录复制/导入见 [持久化说明](task-workspace-layout.md)。
+
+安装目录只放程序，替换 App 不删除用户数据。开发版与正式版默认共享单实例锁。格式不兼容时拒绝打开，迁移需备份与回滚验收。
+
+两个桌面入口显示 CoworkOS / CoworkOS Dev；macOS 钥匙串工作进程继续使用 `Atria` 加密身份以兼容已有凭据。Electron 41 的 macOS 加密服务名由应用名派生（[固定版本实现](https://github.com/electron/electron/blob/v41.10.7/shell/browser/electron_browser_main_parts.cc#L476-L517)）。旧 Atria Dev 密文可能不能被新身份解密，迁移保留密文与源目录、允许重新输入密钥；真实钥匙串、签名变更与旧版本升级仍需原生验收。
+
+Mac 钥匙串重试进程沿用主 Electron 可执行文件，保留完整 Chromium 运行环境与 `Atria` 加密身份。保存密钥时可能短暂出现第二个 Dock 图标，属于当前 beta 的已知限制；打包验收仅豁免通过精确 PID 识别的钥匙串进程，其他后台进程仍不得注册为普通 App。
+
+原生回归检查既有密文互读、同一进程延迟读取和保存后的页面刷新；测试钥匙串结果不替代真实系统授权验收。
+
+应用内或手动升级前备份重要数据；受管 DMG 安装保存后退出并替换 App，不可写目录使用系统安装方式。重启后确认会话、文件、配置及任务恢复。Command-Q 等待保存与进程清理，失败或冲突由用户处理；窗口关闭在 macOS 上不等于退出。中断、未确认提交和完整输入草稿按当前协议恢复，不能以删除数据作为故障处理方式。
+
+无 Developer ID 签名或未公证的包可能被 Gatekeeper 阻止，测试者使用系统提供的打开/批准流程；不提供关闭系统保护的脚本。公开稳定版须完成 Developer ID 签名、公证、staple 与下载隔离属性验收，签名凭据不进仓库。
+
+## 语音输入的原生资源与权限
+
+完整构建编译 [系统语音 helper](../src/gui/macos-speech.swift)，输出 `dist/src/gui/atria-speech-input`；安装包需包含该可执行文件。CLI 构建不需要语音 helper。App 与开发 App 的 `Info.plist` 提供 `NSMicrophoneUsageDescription` 和 `NSSpeechRecognitionUsageDescription`，签名使用 [原生权限文件](../desktop/entitlements.mac.plist) 中的音频输入授权。开发运行时将这些元数据计入缓存身份，变更后重新生成，避免继续使用缺少语音声明的旧运行时。
+
+自动回归以假 helper 验证真实 Electron 按钮、可信 IPC、结果入草稿与清理，不申请系统授权、不录真实声音。
+
+正式候选另需人工验证首次允许、拒绝后重新允许、实际中文识别、停止/切会话/退出后的麦克风释放；绑定最终 App hash，不能把替身测试写成真实录音验收。排查系统能力可运行 `dist/src/gui/atria-speech-input --status`，该命令只查询状态，不请求权限或录音。使用方式见 [语音输入](runtime-reference.md#语音输入)。
+
+## 发布验收
+
+按 [本地测试指南](testing-local-run.md) 保存当前版本的独立结果，并审查 skip 与待人工项：
+
+| 范围       | 必须核对                                                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 源码与协议 | 构建、静态/类型/格式、文档与源码卫生门槛、Node 回归、浏览器回归                                                              |
+| 候选 App   | `npm run test:desktop` 按包元数据验证宿主、文档、退出/重启和搬移升级；小包明确 skip 原生 CAD/Blender，完整包执行内置原生分支 |
+| 原生能力   | 小包另验启动准备专项和真实组件冷安装；完整包验内置 CAD/Blender，Computer Use 按系统权限单独验收，分别记录实际运行或 skip     |
+| 最终 DMG   | 校验 SHA-256，在无开发环境的另一台 Mac 安装；验证首次启动、模型连接、失败恢复、数据备份和升级                                |
+| 实际模型   | 显式配置自己的 endpoint 与预算，验证请求和代表性任务；本地协议夹具不证明模型质量                                             |
+| 分发       | 核对版本/tag/产物、公开静态更新源与单一当前版本、支持平台、签名/公证、已知限制及许可证                                       |
+
+`scripts/desktop-smoke.mjs` 使用临时用户目录和本地模型协议服务，不使用真实凭据。源码或打包测试通过不能替代最终 DMG、干净机器、真实模型与人工体验验收。记录系统、芯片、版本、包校验值和当前结果，不复用历史通过计数。
+
+## 许可证与 CLI 候选
+
+自有代码使用 [MIT](../LICENSE)，第三方保留各自许可证，见 [第三方声明](../THIRD_PARTY_NOTICES.md)。CLI/App 白名单包含这些文件。PPTist 使用 AGPL-3.0，完整构建生成对应 `LICENSE.txt` 和 `source.tar.gz`，随 Web/App 提供；CLI tgz 不包含浏览器编辑器。发布时检查最终包的版权和实际对应源码，MIT 标识不替代第三方义务。
+
+CLI 可使用隔离输出目录：
+
+```sh
+ATRIA_PACKAGE_DIR="$PWD/.tmp/cli-candidate" npm run cli:pack
+```
+
+默认输出为 `release/`。CLI 包携带锁定的可移植生产依赖、许可证及生产 `npm-shrinkwrap.json`。esbuild 恢复校验过的精确版本原始 JavaScript 安装器，安装时获取适合用户系统的精确版本二进制并验证 SHA-256；不复制构建机的原生二进制。因此安装需要网络和安装脚本，不支持 `--ignore-scripts`。流程修改需运行 `test/cli-packaging.test.js`，再隔离安装真实候选，核对 CLI、Pi 扩展和依赖版本。
+
+组件资源、独立发行清单、默认小包、离线完整包与内部基础入口及验收见 [应用与组件](optional-components.md)。

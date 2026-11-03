@@ -1,0 +1,186 @@
+SciAgentGYM scientific tool adaptations
+Upstream: https://github.com/CMarsRover/SciAgentGYM
+Pinned commit: e9dbbea4369d67694e38bf8be67bedbcaf9e9300
+Upstream license: Apache License 2.0 (LICENSE in this directory).
+The selected source files contain no individual copyright notices.
+No upstream NOTICE file was present at this revision.
+
+src/tools/science/pilot.py adapts the following selected functions:
+
+toolkits/physics/optics/gpqa_physics_chemsirty_63.py
+  eV_to_nm (line 118), nm_to_eV (146)
+toolkits/physics/thermodynamics/thermodynamics_solver_215.py
+  ideal_gas_state (8), isothermal_process (30), isobaric_process (74)
+toolkits/physics/thermodynamics/clausius_clapeyron_temperature.py
+  clausius_clapeyron_temperature (10), clausius_clapeyron_pressure (55)
+toolkits/physics/acoustics/acoustics_toolkit_claude_653.py
+  convert_spl_to_pressure (45), convert_pressure_to_spl (77),
+  add_two_spl_values (159), calculate_spl_at_distance (338)
+toolkits/physics/optics/optical_wave_propagation_65.py
+  analyze_spectrum (147)
+
+src/tools/science/analysis.py adapts the following six selected functions:
+
+toolkits/chemistry/analytical_chemistry/analytical_chemistry_tools_15080.py
+  baseline_correction (90), peak_detection (154),
+  multivariate_analysis (208), fit_calibration_curve (258)
+toolkits/chemistry/physical_chemistry/nernst_potential.py
+  nernst_potential (87)
+toolkits/materials_science/x_ray_diffraction_analysis/xrd_analysis_toolkit_0003.py
+  bragg_law_d_spacing (33)
+
+src/tools/science/astronomy.py adapts the following eight selected functions:
+
+toolkits/astronomy/astronomy/astronomy_toolkit_5.py
+  calculate_extinction (40), calculate_distance_modulus (91),
+  distance_from_modulus (143)
+toolkits/astronomy/astronomy/astronomy_toolkit_6.py
+  calculate_stellar_luminosity (32), calculate_transit_depth (161)
+toolkits/astronomy/astronomy/astronomy_toolkit_12.py
+  wavelength_shift_to_velocity (32), kepler_third_law (147)
+toolkits/astronomy/astronomy/astrophysics_toolkit_1.py
+  calculate_mass_ratio_from_rv (42)
+
+src/tools/science/materials.py adapts the following four selected functions:
+
+toolkits/materials_science/x_ray_diffraction_analysis/xrd_analysis_toolkit_0003.py
+  cubic_lattice_parameter (65)
+  SHA256: d4fdb46206eebf44dc4695483c3210cadf3ad8ce5f569c64f608c7d6be9dd294
+toolkits/materials_science/crystallography/crystallography_toolkit_claude_218.py
+  calculate_metric_tensor (38), calculate_interplanar_spacing_general (146)
+  SHA256: 77a5d330e14d5b357e22d5adf73e9082b4e624678fd0cd464071e2d150b5d69f
+toolkits/materials_science/x_ray_diffraction_analysis/materials_toolkit_M022_0000.py
+  calculate_scherrer_grain_size (50)
+  SHA256: 2bd2931e4abf613caaa8a0e9cd2bfa5b86752cc73f653cffe75461f1d95e7e00
+
+src/tools/science/mass_spectrometry.py adapts three selected functions:
+
+toolkits/life_science/mass_spectrometry/mass_spectrometry_toolkit_0070000.py
+  parse_mass_spectrum_peaks (37)
+  SHA256: a5f78e95273ac09fa0c0c12a0b17b3fe019ae29729819634bbb36e2c757c1de6
+toolkits/life_science/mass_spectrometry/mass_spectrometry_toolkit_0050000.py
+  calculate_theoretical_isotope_pattern (44), find_isotope_cluster (195)
+  SHA256: a2b623e3a6fcfc1d2014b42f7c64b7f1abc4e02aba5d3b52b46247e314a911d5
+
+Modifications by CoworkOS contributors:
+- Extracted only these 33 functions; no upstream Agent, environment, loader,
+  generated wrappers, or unrelated tools are imported or distributed.
+- Removed file writes, output-directory creation, plotting and global plotting
+  configuration. Scalar functions use the Python standard library; NumPy and
+  SciPy are imported lazily for the selected numerical analysis functions.
+- Used the exact SI photon constants. Preserved the upstream default gas
+  constant (8.31446261815324) for ideal-gas functions and 8.314 for the
+  Clausius-Clapeyron approximation.
+- Added explicit argument/finite-number/domain/size validation, fixed function
+  dispatch and result envelopes containing units and model assumptions.
+- Restricted ideal-gas arguments to scalars, sound addition to the exact
+  logarithmic formula, propagation to the free-field point-source model,
+  and phase changes to positive constant vaporization/sublimation enthalpy.
+- Used stable logarithmic arithmetic for pressure ratios and sound addition;
+  reject nonpositive temperature solutions and unrepresentable results.
+- Normalized and serialized spectrum outputs; require a strictly increasing
+  positive wavelength axis and nonnegative intensity with positive maximum;
+  limit inputs to 8192 samples and results to 1024 peaks. Widths are null when
+  not calculated, rather than the upstream zero-filled placeholder.
+- Restricted baseline correction to polynomial detrending of sample indices,
+  with bounded degree; excluded dense ALS and simplified rubberband modes.
+  Return both the fitted trend and corrected signal without producing files.
+- Kept raw-value peak detection separate from normalized spectrum analysis.
+  Validate coordinates and return half-prominence widths in sample points,
+  rather than describing every width as full width at half maximum.
+- Restricted calibration to ordinary least-squares linear fitting with an
+  intercept. Removed Python callable output and the unvalidated detection-limit
+  estimate, and added bounded numeric predictions instead. R-squared is null
+  for constant responses; nonlinear and custom models remain unavailable.
+- Implemented standardized PCA with NumPy, without importing scikit-learn or
+  pandas. Return numeric scores, loadings, variance, means and scales instead
+  of estimator objects. Bound matrix shape, total cells and component count.
+  Center in offset coordinates for stable population-standard-deviation scaling
+  and centered training scores when feature values have large absolute offsets.
+  Return centering_origin and centering_offset for stable reuse as
+  (x - centering_origin) - centering_offset; means remains a rounded summary.
+- Corrected Nernst reduction-potential sign for Ox + n e- -> Red:
+  E = E0 + (R*T/(n*F))*ln(a_oxidized/a_reduced). The upstream implementation
+  used the opposite sign with these argument names. Require dimensionless
+  positive activities and preserve the input electrode reference.
+- Extracted only first-order Bragg spacing from the selected XRD module;
+  inputs are 2-theta in degrees and wavelength in angstrom, output angstrom.
+  No crystallography package, Materials Project query or plotting is used.
+- Extracted astronomy arithmetic into standard-library functions, without
+  importing Astropy, Astroquery, NumPy or plotting modules. Retained explicit
+  constants c = 299792458 m/s, G = 6.67430e-11 m^3/(kg s^2),
+  R_sun = 6.957e8 m, L_sun = 3.828e26 W and sigma = 5.670374419e-8 W/(m^2 K^4).
+- Bounded reddening, extinction, magnitude, radius and temperature inputs.
+  Kept the modulus interval -10 to 30 mag and corrected the upstream prose:
+  this corresponds to 0.1 to 10000000 pc, not the stated upper 100 kpc.
+  Distance modulus is extinction-corrected and requires matching bands.
+- Restricted stellar radii to solar units. Return bolometric luminosity in
+  both nominal solar units and watts with converted radius and temperature.
+  For transits retain remaining system luminosity and explicitly return depth
+  fraction/percent, blocked area, luminosity lost and pre-transit total light.
+  Both radii use solar units; the model is uniform brightness and full overlap
+  with an unocculted companion, without limb darkening or a time-dependent curve.
+  Star and companion light share a band (or both are bolometric), distance and
+  solar-luminosity normalization so the luminosity ratio models observed flux.
+- Restricted first-order Doppler conversion to abs(delta_lambda/lambda_0)
+  <= 0.001, with signed velocity and matching wavelength conventions.
+  Use stable arithmetic for Kepler period and specify the Newtonian,
+  weak-field, negligible-companion-mass approximation. Explicitly define the
+  binary mass ratio as m1/m2 = k2/k1 from positive fitted semi-amplitudes.
+- Preserved the original 12-function catalog for v1-pinned Runs and the
+  18-function catalog for v2-pinned Runs. The expanded 26-function catalog is
+  a separate v3 selection.
+- Added only cubic lattice parameter, direct metric tensor, general plane
+  spacing and Scherrer estimates from the selected materials modules. Replaced
+  their NumPy matrix operations with bounded standard-library arithmetic.
+  Validate integer nonzero Miller triples, symmetric 3x3 positive-definite
+  metrics and conditioning; reject invalid and nearly degenerate cells.
+  Return the direct metric in square angstrom and cell volume in cubic angstrom;
+  reciprocal metric conventions exclude a 2-pi factor and spacings use angstrom.
+- Changed Scherrer instrumental correction from direct subtraction with an
+  unspecified profile to explicit Gaussian quadrature:
+  beta = sqrt((observed_FWHM - instrumental_FWHM) *
+              (observed_FWHM + instrumental_FWHM)), with both widths on the
+  2-theta degree axis before conversion to radians. Reject nearly cancelling
+  corrected widths. Return D_nm and intermediate values with explicit units.
+  D estimates coherent diffraction-domain size, not measured particle/grain
+  size; no strain separation, profile fit or Lorentzian/Voigt deconvolution.
+- Preserved v1-v4 catalog entries and implementations. The v5 selection has
+  33 tools: these 30 upstream adaptations and three native RDKit wrappers.
+- Normalize mass-spectrum centroid intensities to the input base peak as 100
+  before inclusive relative-threshold filtering. Return raw and relative
+  intensities, base_peak and highest_mz_peak, removing the unsupported upstream
+  assignment of the highest-m/z peak as molecular_ion. Bound centroid inputs
+  to 8192 and retained outputs to 1024, rejecting excess instead of truncating.
+- Make num_carbon actually contribute to the isotope pattern. Convolve
+  independent chlorine/carbon binomials into nominal shifts j+2*k using fixed
+  Cl37=0.2424 and C13=0.0107, recording these isotope fractions. Preserve all
+  bins, including zeros, and distinguish probabilities from base-100 relative
+  intensities. Exclude other elements, enrichment and exact-mass fine structure.
+- Find nominal M/M+2/M+4/M+6 candidates at a supplied absolute charge using
+  2/abs_charge spacing, anchoring later windows to the observed M centroid.
+  Use bounded inclusive tolerance windows; reject multiple candidates rather
+  than silently choosing the first. Preserve requested/observed anchors,
+  deviations and missing labels; undefined M+2/M ratios remain null.
+  No chloride count, charge, molecular-ion, fragment or structure inference.
+- The v6 selection preserves v1-v5 and has 37 tools: these 33 upstream
+  adaptations and four native RDKit wrappers. The mass-spectrum functions use
+  only the Python standard library; no new scientific dependency is installed.
+
+src/tools/science/runner.py and test/science-kernels.test.js are new CoworkOS code
+and remain under the repository's MIT license.
+
+The later v4 catalog also contains three CoworkOS-native RDKit wrappers in
+src/tools/science/chemistry.py. They are not part of these 33 upstream
+adaptations and contain no copied SciAgentGYM or RDKit source. Their provenance
+is atria-native; their implementation remains MIT. RDKit is an optional,
+user-managed external dependency under its own BSD-3-Clause license, not a
+bundled SciAgentGYM component. See the repository's THIRD_PARTY_NOTICES.md.
+
+The v6 rdkit_exact_mass_and_formula wrapper in
+src/tools/science/mass-chemistry.py is also new CoworkOS MIT code, not an extracted
+SciAgentGYM molecular-properties function. It reuses the unchanged v4 input
+parser and public RDKit ExactMolWt/CalcMolFormula APIs in the user-selected
+environment. Formula output preserves explicit isotopes; mass uses Da and
+zero net formal charge. It does not calculate ion/adduct m/z, DBE, fragments,
+structural rankings or molecular-ion identity. RDKit remains external BSD-3-Clause.
