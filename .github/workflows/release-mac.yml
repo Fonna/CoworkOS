@@ -58,7 +58,7 @@ jobs:
           npm run desktop:npm:pack
           npm run npm:pack
           archive="release/coworkos-desktop-darwin-arm64-${{ steps.release.outputs.version }}.tgz"
-          shasum -a 256 "$archive" | awk '{print $1 "  " $2}' > "$archive.sha256"
+          (cd release && shasum -a 256 "${archive#release/}") > "$archive.sha256"
       - name: Verify artifact provenance and prepare review notes
         run: node scripts/release-artifacts.mjs
       - name: Create draft and upload release packages

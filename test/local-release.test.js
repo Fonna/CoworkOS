@@ -17,6 +17,11 @@ test("local release builds once and uploads candidate archives without publishin
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(join(root, "release"));
   await writeFile(join(root, "package.json"), JSON.stringify({ version }));
+  const desktopName = `coworkos-desktop-darwin-arm64-${version}.tgz`;
+  await writeFile(
+    join(root, "release", desktopName + ".sha256"),
+    "stale checksum from an earlier candidate\n"
+  );
   const calls = [];
   const commandRunner = async (command, args, options) => {
     calls.push({ command, args, options });
@@ -56,6 +61,10 @@ test("local release builds once and uploads candidate archives without publishin
   );
   assert.equal(calls[6].options.env.RELEASE_TAG, tag);
   assert.equal(calls[6].options.env.ATRIA_DESKTOP_NPM_PACKAGE_DIR, join(root, "release"));
+  assert.equal(
+    await readFile(join(root, "release", desktopName + ".sha256"), "utf8"),
+    `${createHash("sha256").update("desktop").digest("hex")}  ${desktopName}\n`
+  );
 });
 
 test("local release refuses to run on a non-Apple-Silicon host before invoking commands", async () => {

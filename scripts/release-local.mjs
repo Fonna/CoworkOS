@@ -49,13 +49,7 @@ export async function runLocalRelease({
   for (const name of npmArchives) {
     const bytes = await readFile(join(root, "release", name));
     const digest = createHash("sha256").update(bytes).digest("hex");
-    const checksum = await readFile(join(root, "release", name + ".sha256"), "utf8").catch((error) => {
-      if (error.code !== "ENOENT") throw error;
-      return undefined;
-    });
-    if (checksum && checksum.trim() !== `${digest}  ${name}`)
-      throw new Error(`npm archive checksum differs: ${name}`);
-    if (!checksum) await writeFile(join(root, "release", name + ".sha256"), `${digest}  ${name}\n`);
+    await writeFile(join(root, "release", name + ".sha256"), `${digest}  ${name}\n`);
   }
 
   await run("node", ["scripts/release-artifacts.mjs"]);
