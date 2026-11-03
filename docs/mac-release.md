@@ -107,17 +107,21 @@ ATRIA_COMPONENT_SOURCES_DIR=.tmp/component-sources npm run components:publish
 | `CoworkOS-<version>-mac-arm64.signing.json` 与 `.sha256` | 精确记录候选 App 的签名状态                                |
 | `atria-release-<version>.json` 与 `.sha256`              | 原始私有源码仓库/tag/commit 与发行产物来源记录             |
 
-下一版 npm 安装器和 App 更新包按以下顺序准备并发布。平台 tgz 只包含对应 DMG、许可和版本/校验清单；CLI tgz 包含安装器代码。先完成候选 App 的回归、DMG 验收与隔离 npm 安装，再发布桌面包，匿名读取 registry 元数据并验证完整安装后，发布 CLI 包：
+下一版 npm 安装器和 App 更新包由 [Publish npm packages 工作流](../.github/workflows/publish-npm.yml) 从已存在的版本 tag 构建并发布。平台 tgz 只包含对应 DMG、许可和版本/校验清单；CLI tgz 包含安装器代码。工作流会再次校验 tag、`package.json` 和 lockfile 版本一致，检查对应的 GitHub Release 仍是草稿，完成候选构建后依次发布桌面包和 CLI 包，并用匿名 `npm view` 核对实际发布版本。两个包使用 npm 官方 registry，用户仍可直接运行 `npx coworkos-app@latest` 或 `npm install -g coworkos-app`。
+
+首次启用前，在 npm 的两个包设置中分别配置 Trusted Publisher：仓库填写 `RUC-NLPIR/CoworkOS`，工作流填写 `publish-npm.yml`，Environment 填写 `npm-publish`。GitHub Actions 使用 OIDC，不把 npm token 放进仓库。可在 GitHub 的 `npm-publish` Environment 设置 Required reviewers，发布前由维护者批准；npm 版本一旦发布不可覆盖。
+
+发布顺序为：先推送与 `package.json` 完全一致的 `vX.Y.Z` tag，等待 Release Mac DMG 工作流生成并上传草稿；检查草稿和候选产物后，在 Actions 中运行 Publish npm packages，输入同一个 tag；npm 发布成功后，再手动发布 GitHub Release 草稿。下一个公开版本应递增版本号，例如从现有 `0.1.2` 进入 `0.1.3`，不要尝试覆盖已发布的 `0.1.2`。
+
+本地仍可用以下命令生成候选包进行验收，但正式发布应使用工作流：
 
 ```sh
-VERSION=0.1.1
+VERSION=0.1.3
 ATRIA_DESKTOP_NPM_PACKAGE_DIR="$PWD/.tmp/npm-release" npm run desktop:npm:pack
 ATRIA_PACKAGE_DIR="$PWD/.tmp/npm-release" npm run npm:pack
-npm publish ".tmp/npm-release/coworkos-desktop-darwin-arm64-${VERSION}.tgz" --access public
-npm publish ".tmp/npm-release/coworkos-app-${VERSION}.tgz" --access public
 ```
 
-两个包均不可覆盖已发布版本。`latest` / `beta` tag 由包的 `publishConfig` 选择；发布后用匿名 `npm view` 核对版本、平台限制、dist-tag 和完整性信息。平台包发布后、CLI 发布前，应先通过真实 npm 下载路径验收 installer 和 App 更新 provider。若当前版本属于旧 GitHub 更新客户端，还需按旧发布流程构建兼容迁移版本；新 npm 发布本身不会改写旧 App 的下载地址。
+两个包均不可覆盖已发布版本。`latest` / `beta` tag 由包的 `publishConfig` 选择。平台包发布后、CLI 发布前，应先通过真实 npm 下载路径验收 installer 和 App 更新 provider。若当前版本属于旧 GitHub 更新客户端，还需按旧发布流程构建兼容迁移版本；新 npm 发布本身不会改写旧 App 的下载地址。
 
 GitHub DMG/CLI Release 与静态更新指针只保留给旧客户端兼容和明确的手动归档分发。对已审核的干净 tag，仍可执行 `node scripts/release-artifacts.mjs` 生成来源清单，再运行 `npm run release:publish:public`；发布器通过旧内容 SHA 比较更新 `updates/coworkos-latest.json`，不可覆盖已发布附件或回退指针。
 

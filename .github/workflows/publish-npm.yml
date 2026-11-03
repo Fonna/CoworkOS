@@ -1,0 +1,86 @@
+name: Publish npm packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish, for example v0.1.3
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-npm-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: macos-15
+    timeout-minutes: 45
+    environment: npm-publish
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Validate tag and package versions
+        id: release
+        run: node scripts/release-metadata.mjs
+
+      - name: Check the GitHub Release is still a draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-draft.mjs check
+
+      - uses: astral-sh/setup-uv@v6
+
+      - run: npm ci
+
+      - name: Build the Mac candidate and CLI archive
+        run: |
+          npm run desktop:dist
+          npm run cli:pack
+
+      - name: Prepare npm archives
+        env:
+          ATRIA_DESKTOP_NPM_PACKAGE_DIR: ${{ github.workspace }}/.tmp/npm-release
+          ATRIA_PACKAGE_DIR: ${{ github.workspace }}/.tmp/npm-release
+        run: |
+          npm run desktop:npm:pack
+          npm run npm:pack
+
+      - name: Publish the Mac desktop package
+        run: >-
+          npm publish
+          ".tmp/npm-release/coworkos-desktop-darwin-arm64-${{ steps.release.outputs.version }}.tgz"
+          --access public
+          --provenance
+          --registry=https://registry.npmjs.org
+
+      - name: Publish the CLI package
+        run: >-
+          npm publish
+          ".tmp/npm-release/coworkos-app-${{ steps.release.outputs.version }}.tgz"
+          --access public
+          --provenance
+          --registry=https://registry.npmjs.org
+
+      - name: Verify the published versions
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          test "$(npm view --registry=https://registry.npmjs.org coworkos-desktop-darwin-arm64@"$VERSION" version)" = "$VERSION"
+          test "$(npm view --registry=https://registry.npmjs.org coworkos-app@"$VERSION" version)" = "$VERSION"
