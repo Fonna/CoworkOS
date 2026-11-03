@@ -38,7 +38,7 @@ test("desktop file selection carries the complete math renderer, CSS, fonts and 
   assert.ok([...included].some((file) => file.endsWith(".woff2")));
   assert.equal(
     await readFile(join(stage, "web/assets/math/generated/LICENSE.txt"), "utf8"),
-    await readFile(join(source, "licenses/katex-0.19.0-LICENSE.txt"), "utf8")
+    await readFile(join(dirname(require.resolve("katex/package.json")), "LICENSE"), "utf8")
   );
   await writeFile(join(stage, "package.json"), '{"type":"module"}');
   const probe = `
