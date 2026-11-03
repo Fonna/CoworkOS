@@ -131,7 +131,7 @@ async function put(root, file, content) {
   await writeFile(join(root, file), typeof content === "string" ? content : JSON.stringify(content));
 }
 
-test("the actual CLI packer excludes retained Mac helpers and includes upstream license resources", async (t) => {
+test("the actual CLI packer excludes retained Mac helpers and tolerates optional source resources", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "atria-cli-content-"));
   try {
     // Copy only public source directories used by the actual packer. No build,
@@ -143,7 +143,6 @@ test("the actual CLI packer excludes retained Mac helpers and includes upstream 
       ".pi/prompts",
       ".pi/skills",
       "docs",
-      "licenses",
       "vendor/sciagentgym"
     ])
       await cp(new URL(`../${directory}/`, import.meta.url), join(root, directory), { recursive: true });
@@ -155,8 +154,6 @@ test("the actual CLI packer excludes retained Mac helpers and includes upstream 
       "CLAUDE.md",
       "LICENSE",
       "THIRD_PARTY_NOTICES.md",
-      "ROADMAP.md",
-      "ROADMAP.en.md",
       "CONTRIBUTING.md",
       "CONTRIBUTING.en.md",
       "config.example.json",
@@ -344,11 +341,7 @@ test("the actual CLI packer excludes retained Mac helpers and includes upstream 
       false
     );
     const license = "licenses/pi-0.87.1-LICENSE.txt";
-    assert.ok(files.includes(`package/${license}`));
-    assert.deepEqual(
-      execFileSync("tar", ["-xOf", archive, `package/${license}`]),
-      await readFile(new URL(`../${license}`, import.meta.url))
-    );
+    assert.equal(files.includes(`package/${license}`), false);
     const unpacked = join(root, "unpacked");
     await mkdir(unpacked);
     execFileSync("tar", [

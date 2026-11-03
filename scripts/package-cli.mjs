@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtemp, cp, mkdir, readFile, writeFile, rm, chmod, rename } from "node:fs/promises";
+import { access, mkdtemp, cp, mkdir, readFile, writeFile, rm, chmod, rename } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, relative, sep } from "node:path";
 import { createHash } from "node:crypto";
@@ -16,6 +16,7 @@ if (arguments_.length > 1 || arguments_.some((argument) => argument !== "--npm")
 const npmDistribution = arguments_.includes("--npm");
 const stage = await mkdtemp(join(tmpdir(), "atria-cli-package-"));
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+const optionalSourceFiles = new Set(["licenses", "ROADMAP.md", "ROADMAP.en.md"]);
 try {
   const pkg = JSON.parse(await readFile("package.json", "utf8"));
   const lock = JSON.parse(await readFile("package-lock.json", "utf8"));
@@ -80,6 +81,12 @@ try {
     "config.example.json"
   ];
   for (const file of files) {
+    try {
+      await access(file);
+    } catch (error) {
+      if (error.code === "ENOENT" && optionalSourceFiles.has(file)) continue;
+      throw error;
+    }
     await mkdir(join(stage, file, ".."), { recursive: true });
     await cp(file, join(stage, file), {
       recursive: true,
