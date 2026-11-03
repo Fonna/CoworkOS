@@ -164,7 +164,7 @@ Web stores the preference per origin in `localStorage` under `atria.language`. A
 
 ## Appearance storage
 
-The App saves appearance in `appearance.json` in its user data directory; Web stores it per browser site. Missing or invalid preferences use Follow system, and existing manual choices remain. Light mode preserves the nebula, stars and multi-agent galaxy. System forced colors hide decorative canvases.
+The App saves appearance in `appearance.json` in its user data directory; Web stores it per browser site. Missing or invalid App preferences use Follow system. Web defaults to Dark when its preference is missing or invalid, and falls back to Follow system if browser storage is unavailable. Existing manual choices remain. Light mode preserves the nebula, stars and multi-agent galaxy. System forced colors hide decorative canvases.
 
 ## Advanced limits
 
