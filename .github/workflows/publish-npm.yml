@@ -20,6 +20,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      # GitHub only exposes draft releases to tokens with push access.
+      contents: write
+      id-token: write
     environment: npm-publish
     env:
       RELEASE_TAG: ${{ inputs.tag }}
