@@ -2,6 +2,8 @@
 
 [English](en/code-map.md) | 中文
 
+本分支私人助理二次开发先读[产品定位、整改路线与进度](personal-assistant-roadmap.md)和[原则与决策](personal-assistant-principles.md)；规划职责不代表当前已交付能力，实现入口仍按本页及目录指引选择。
+
 开发 Agent 先读根目录 [AGENTS.md](../AGENTS.md) 和目标目录的 `AGENTS.md`，再用本页选择负责行为的模块和测试。职责与依赖见 [架构](architecture.md)，执行命令见 [开发指南](development.md)。
 
 品牌入口：桌面显示名在 [profile](../desktop/profile.cjs)，安装包名在 [打包配置](../electron-builder.config.cjs)，CLI 命令与兼容别名在 [package](../package.json) 和 [CLI 打包](../scripts/package-cli.mjs)，会话身份在 [agent identity](../src/domain/agent-identity.ts)。CoworkOS 的旧数据、钥匙串、协议与更新兼容规则见 [安装参考](installation-reference.md#名称与旧版兼容)。

@@ -9,3 +9,5 @@ English | [简体中文](../README.md)
 ## Development
 
 [Setup](development.md) · [Architecture](architecture.md) · [API](../product-api.md) · [Contribute](../../CONTRIBUTING.en.md)
+
+[Personal assistant roadmap & progress (Chinese)](../personal-assistant-roadmap.md) · [Development principles & decisions (Chinese)](../personal-assistant-principles.md)

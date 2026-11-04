@@ -44,6 +44,8 @@ export const maintainedDocumentation = [
   "docs/cli-ui-adapter.md",
   "docs/development.md",
   "docs/code-map.md",
+  "docs/personal-assistant-roadmap.md",
+  "docs/personal-assistant-principles.md",
   "docs/architecture.md",
   "docs/module-ownership.md",
   "docs/documentation.md",
