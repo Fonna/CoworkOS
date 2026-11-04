@@ -55,7 +55,12 @@ export function runDesign(source, parameters, exportStl, limits) {
         positions.push(...polygon.vertices[0], ...polygon.vertices[j], ...polygon.vertices[j + 1]);
       }
     }
-    return { id: `solid_${i}`, name: String(solid.name || `实体 ${i + 1}`).slice(0, 80), positions };
+    return {
+      id: `solid_${i}`,
+      name: String(solid.name || `实体 ${i + 1}`).slice(0, 80),
+      positions,
+      ...(solid.color !== undefined ? { color: solid.color } : {})
+    };
   });
   const positions = features.flatMap((f) => f.positions);
   if (positions.length > limits.maxTotalTriangles * 9 || !positions.every(Number.isFinite))

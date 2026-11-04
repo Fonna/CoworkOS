@@ -168,6 +168,8 @@ Harness 应用在 [插件注册](../src/applications/plugins/index.ts) 与 [前�
 
 CAD 网格、内存、导出及超时策略在 [共享计算限制](../src/software/cad/compute-limits.ts)，有限等待、取消和计算槽在 [计算队列](../src/software/cad/compute-queue.ts)。CadQuery 完整精度网格在 [原生运行器](../src/software/cad/cadquery-runner.py)；显示元数据经 [几何校验](../src/software/cad/program-geometry.ts)、预览报告、工具和查看器传递。先检查 [原生网格/STEP](../test/cad-native.test.js) 与 [精度元数据](../test/cad-tessellation.test.js)，同步 [CAD 指南](cad-integration.md#cadquery-精确实体路径)。
 
+JSCAD 实体颜色由 [隔离执行桥](../src/software/cad/program-guest.js) 传给预览网格，再供查看器零件色和四视图使用；[颜色回归](../test/cad-program-color.test.js) 验证 RGB/RGBA、多实体、非法颜色、参数更新和缓存，[浏览器回归](../e2e/cad-program-color.spec.js) 验证切换外观后的实际画面。
+
 Blender 的执行、渲染、查询及最大时限在 [Blender 计算策略](../src/software/blender/compute-limits.ts)，由工具、Provider 和编辑器共用。外部 MCP 工具请求与取消在 [MCP 宿主管理](../src/applications/mcp-supervisor.ts) 和 [本地 API 客户端](../src/applications/mcp/local-api-client.ts)。
 
 应用资源根与真实 Task 存储根分别解析，独立项目应用的资源不要求与 Task 同目录；持久引用、清单与实例加载关系留在 Task 存储，窗口实例索引在应用资源根。HTTP、Run/Pi 必须读取同一 Task 的绑定。

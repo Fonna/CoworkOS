@@ -185,6 +185,8 @@ CadQuery 来源：[官方安装说明](https://cadquery.readthedocs.io/en/stable
 
 查看器默认使用工程灰。曲面按 30 度折角做法线平滑并保留锐边，使用本地生成的环境反射、色调映射和补光。用户可切换零件色或声明材质；这些显示操作不修改源码、BRep、STEP 或材料物性。
 
+JSCAD `colors.colorize` 设置的实体 RGB/RGBA 颜色会保留到预览网格、工具报告和四视图 PNG。查看器切换「零件色」后显示各实体颜色，并保留透明度；未设置颜色的实体继续使用默认外观。四视图仅提供颜色与明暗，不模拟金属反射；实体颜色不等于表面纹理贴图或逐面配色。
+
 `cad_get_api_reference({module:"Design"})` 返回 `atria-cad-design/v1`。CadQuery 可提供 `get_design_manifest(p)`，声明用途、需求部件路径与最小独立实体数量、显示材质、源码检查及简化限制。材料为 aluminum/steel/cast-iron/brass/rubber。passed 检查须提供 evidence，仍明确标为源码声明，运行器不会将其升级成独立工程认证。
 
 预览与提交返回 `assessment`，查看器“设计检查”同步显示：真实非空零件匹配数量、缺失部件、未验证/失败检查、循环首尾姿态不闭合及省略项。路径包含子孙，重叠路径去重。没有需求清单时完整度为 not_declared；全部数量满足为 declared_components_present，不能推断结构正确、无干涉或可制造。旧预览不显示为当前验收通过。源码断言失败和清单格式错误仍阻止候选提交；缺件和未验证项作为反馈，允许保存仍在完善的设计。
