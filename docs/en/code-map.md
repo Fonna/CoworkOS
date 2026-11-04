@@ -16,6 +16,8 @@ The [Pi launcher](../../scripts/start-pi-runtime.mjs) selects the process entry.
 
 Windows verification, builds and PPTist installation use [npm without a batch shell](../../scripts/npm-command.mjs). File polling uses platform-aware path boundaries. Regressions cover the [test runner](../../test/test-runner.test.js) and [paths and file polling](../../test/p2.test.ts).
 
+Windows desktop shutdown requests graceful backend cleanup over parent IPC. Managed tasks and foreground commands terminate descendants while their owned root remains alive. See [process tree implementation](../../src/runtime/windows-process-tree.ts), [task stop](../../test/process-host.test.js), [desktop shutdown](../../test/desktop-backend.test.js) and [command cancellation](../../test/foreground-command-output.test.js). Dashboard fixtures convert file URLs to paths.
+
 ```text
 scripts/install.sh         CLI installation: published release, verification, user prefix and PATH
 scripts/atria.mjs          User CLI launcher: init, doctor, start, etc.

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createRequire } from "node:module";
-import { access, mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { access, mkdtemp, mkdir, writeFile, rm, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { once } from "node:events";
@@ -9,6 +9,39 @@ const require = createRequire(import.meta.url);
 const { startBackend } = require("../desktop/backend.cjs");
 const { desktopPaths, prepareDesktopData } = require("../desktop/paths.cjs");
 const { createModelSettings } = require("../desktop/model-settings.cjs");
+
+test(
+  "Windows backend shutdown requests durable cleanup over parent IPC before terminating",
+  { skip: process.platform !== "win32" },
+  async (t) => {
+    const root = await mkdtemp(join(tmpdir(), "cowork-backend-shutdown-"));
+    const appRoot = join(root, "app");
+    const marker = join(root, "shutdown-completed");
+    await mkdir(join(appRoot, "dist/src/cli"), { recursive: true });
+    await writeFile(
+      join(appRoot, "dist/src/cli/dashboard.js"),
+      `
+    process.on('message', value => {
+      if (value.type === 'dashboard.shutdown') {
+        require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'saved');
+        process.exit(0);
+      }
+    });
+    process.send({type:'dashboard.ready',url:'http://127.0.0.1:'+process.env.COWORK_UI_PORT});
+  `
+    );
+    const paths = desktopPaths(appRoot, join(root, "data"), {});
+    await prepareDesktopData(paths, "0.1.0");
+    const backend = await startBackend(paths, {}, process.execPath);
+    t.after(async () => {
+      await backend.stop();
+      await rm(root, { recursive: true, force: true });
+    });
+    await backend.stop();
+    assert.equal(await readFile(marker, "utf8"), "saved");
+    assert.equal(backend.child.exitCode, 0);
+  }
+);
 
 test("a packaged backend preserves an explicit CAD runtime instead of replacing it with the bundle", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "atria-backend-component-override-"));

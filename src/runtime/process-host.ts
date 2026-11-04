@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess, type SpawnOptions } from "node:child_process";
+import { terminateWindowsProcessTree } from "./windows-process-tree.js";
 
 /** Owns subprocess groups and bounded shutdown. Run state is owned by the caller. */
 export class ProcessHost {
@@ -37,6 +38,11 @@ export class ProcessHost {
         return;
       }
       const closed = new Promise<void>((done) => child.once("close", () => done()));
+      if (process.platform === "win32") {
+        await terminateWindowsProcessTree(child);
+        await closed;
+        return;
+      }
       let timer: ReturnType<typeof setTimeout> | undefined;
       signal("SIGTERM");
       try {

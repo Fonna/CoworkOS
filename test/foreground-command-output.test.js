@@ -43,6 +43,47 @@ async function ready(path) {
   assert.fail("command fixture did not become ready");
 }
 
+test(
+  "Windows cancellation terminates detached descendants and leaves the executor reusable",
+  { skip: process.platform !== "win32", timeout: 20000 },
+  async (t) => {
+    const { root, options } = await fixture(t);
+    const marker = join(root, "tree.json");
+    const controller = new AbortController();
+    const code = `const {spawn}=require('node:child_process');const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{detached:true,stdio:'ignore'});require('node:fs').writeFileSync(${JSON.stringify(marker)},JSON.stringify([process.pid,child.pid]));setInterval(()=>{},1000);`;
+    const pending = failure(
+      executeForegroundCommand(process.execPath, ["-e", code], {
+        ...options,
+        signal: controller.signal,
+        timeoutMs: 15000
+      })
+    );
+    let pids = [];
+    try {
+      await ready(marker);
+      pids = JSON.parse(await readFile(marker, "utf8"));
+      for (const pid of pids) assert.doesNotThrow(() => process.kill(pid, 0));
+      controller.abort();
+      await pending;
+      for (const pid of pids) assert.throws(() => process.kill(pid, 0), { code: "ESRCH" });
+      const next = await executeForegroundCommand(
+        process.execPath,
+        ["-e", "console.log('recovered')"],
+        options
+      );
+      assert.match(next.stdout, /recovered/);
+    } finally {
+      controller.abort();
+      for (const pid of pids) {
+        try {
+          process.kill(pid, "SIGKILL");
+        } catch {}
+      }
+      await pending;
+    }
+  }
+);
+
 test("large output preserves execution and full logs while previews retain bounded UTF-8 heads and tails", async (t) => {
   const { root, options } = await fixture(t);
   const stdout = "STDOUT_HEAD\n" + "中🚀".repeat(40000) + "\nSTDOUT_TAIL";

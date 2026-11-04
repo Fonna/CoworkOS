@@ -17,6 +17,7 @@ async function availablePort() {
 }
 /** Readiness comes from our child via IPC, never from an arbitrary process on a fixed port. */
 async function startBackend(paths, settings, executable = process.execPath) {
+  const { terminateWindowsProcessTree } = await import("../dist/src/runtime/windows-process-tree.js");
   const { visionModelEnv } = await import("../dist/src/runtime/vision-config.js");
   const visionEnv = visionModelEnv(settings, {});
   const port = await availablePort();
@@ -141,7 +142,9 @@ async function startBackend(paths, settings, executable = process.execPath) {
   const stop = () =>
     (stopping ||= (async () => {
       if (child.exitCode !== null || child.signalCode !== null) return;
-      child.kill("SIGTERM");
+      if (process.platform === "win32" && child.connected)
+        child.send({ type: "dashboard.shutdown" }, () => {});
+      else child.kill("SIGTERM");
       let timer;
       try {
         await Promise.race([
@@ -153,11 +156,13 @@ async function startBackend(paths, settings, executable = process.execPath) {
       } finally {
         clearTimeout(timer);
       }
-      try {
-        if (process.platform !== "win32" && child.pid) process.kill(-child.pid, "SIGKILL");
-        else if (child.exitCode === null) child.kill("SIGKILL");
-      } catch {
-        /* group already exited */
+      if (process.platform === "win32") await terminateWindowsProcessTree(child);
+      else {
+        try {
+          if (child.pid) process.kill(-child.pid, "SIGKILL");
+        } catch {
+          /* group already exited */
+        }
       }
       await closed;
     })());

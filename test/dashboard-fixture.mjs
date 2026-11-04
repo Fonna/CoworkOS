@@ -5,8 +5,9 @@ import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { fileURLToPath } from "node:url";
 
-const harnessRoot = resolve(new URL("..", import.meta.url).pathname);
+const harnessRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 async function freePort() {
   const probe = createServer();
@@ -72,7 +73,7 @@ export async function startDashboard({
   );
   const launchOptions = {
     cwd: harnessRoot,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
     env: {
       ...isolatedEnv,
       ATRIA_HOME: join(root, "home"),
@@ -118,8 +119,10 @@ export async function startDashboard({
   let base = `http://127.0.0.1:${port}`;
   const stopChild = async () => {
     if (child.exitCode === null && child.signalCode === null) {
-      const exited = once(child, "exit");
-      child.kill("SIGTERM");
+      const exited = once(child, "close");
+      if (process.platform === "win32" && child.connected)
+        child.send({ type: "dashboard.shutdown" }, () => {});
+      else child.kill("SIGTERM");
       const timeout = new AbortController();
       try {
         await Promise.race([exited, delay(4_500, undefined, { signal: timeout.signal })]);
@@ -127,7 +130,10 @@ export async function startDashboard({
         timeout.abort();
       }
       if (child.exitCode === null && child.signalCode === null) {
-        child.kill("SIGKILL");
+        if (process.platform === "win32") {
+          const { terminateWindowsProcessTree } = await import("../dist/src/runtime/windows-process-tree.js");
+          await terminateWindowsProcessTree(child);
+        } else child.kill("SIGKILL");
         await exited;
       }
     }

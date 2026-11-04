@@ -3,6 +3,7 @@ import type { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import { signalProcessGroup } from "./process-group.js";
 import { ForegroundCommandOutput, type ForegroundOutputReceipt } from "./foreground-command-output.js";
+import { terminateWindowsProcessTree } from "../runtime/windows-process-tree.js";
 
 export interface ForegroundCommandOptions {
   cwd: string;
@@ -56,7 +57,7 @@ export async function executeForegroundCommand(
   const signalChild = async (signal: NodeJS.Signals): Promise<void> => {
     try {
       if (grouped && groupPid !== undefined) await signalProcessGroup(groupPid, signal);
-      else child.kill(signal);
+      else await terminateWindowsProcessTree(child);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
         failure ??= new Error(`Foreground command cleanup failed: ${String(error)}`, { cause: error });

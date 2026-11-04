@@ -30,7 +30,7 @@ Terminal and App Main share the Cowork extension and capability rules. The lower
 
 Browser/CUA objects belong to the current Pi session and are cleared on exit or session change. Restoring groups does not restore pages or script objects. Ordinary subagents do not inherit them automatically. See [Browser Use](../browser-use.md), [Computer Use](../computer-use.md) and [CUA scripting](../cua-scripting.md).
 
-Cancellation, timeout or excess output ends a managed foreground command's process group. Completion also cleans up unregistered descendants. Descendants that create their own session or process group are outside this scope; Windows manages only the direct command process. Use `start_job` and `check_job` for work that spans tool calls. Stopping Main's turn does not automatically cancel delegated subagents; use `cancel_subagent` explicitly.
+Cancellation, timeout or excess output ends a managed foreground command's process group. Completion also cleans up unregistered descendants. On POSIX, descendants that create their own session or process group are outside this scope. Windows uses `taskkill /T /F` while the owned root remains alive. It does not target an old PID after root exit, and normal completion does not guarantee cleanup of detached background descendants. Use `start_job` and `check_job` for work that spans tool calls. Stopping Main's turn does not automatically cancel delegated subagents; use `cancel_subagent` explicitly.
 
 `run_command` / `run_tests` report nonzero exit, startup failure and timeout as tool errors. `cwd` is relative to the current agent's working directory; the project becomes the default only with project-write access. Main and subagents may have different private working directories.
 

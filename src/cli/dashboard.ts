@@ -14,6 +14,10 @@ const dashboard = createDashboardApplication({
 // This IPC channel belongs to the Electron parent, not the HTTP/Agent surface.
 process.on("message", (value) => {
   if (!value || typeof value !== "object" || !("type" in value)) return;
+  if (value.type === "dashboard.shutdown") {
+    shutdown();
+    return;
+  }
   if (
     value.type === "components.auth" &&
     "requestId" in value &&
@@ -51,14 +55,14 @@ dashboard.server.listen(port, "127.0.0.1", () => {
   if (process.send) process.send({ type: "dashboard.ready", url: dashboard.dashboardUrl });
 });
 let shuttingDown = false;
-for (const signal of ["SIGINT", "SIGTERM"] as const)
-  process.on(signal, () => {
-    if (shuttingDown) return;
-    shuttingDown = true;
-    const forced = setTimeout(() => process.exit(130), 4_000);
-    forced.unref();
-    void dashboard.stop().then(() => {
-      clearTimeout(forced);
-      process.exit(0);
-    });
+function shutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  const forced = setTimeout(() => process.exit(130), 4_000);
+  forced.unref();
+  void dashboard.stop().then(() => {
+    clearTimeout(forced);
+    process.exit(0);
   });
+}
+for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, shutdown);

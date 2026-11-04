@@ -16,6 +16,8 @@ Pi 进程入口由 [启动器](../scripts/start-pi-runtime.mjs) 选择；Windows
 
 Windows 的 npm 验证、构建和 PPTist 安装通过 [无 shell 调用](../scripts/npm-command.mjs) 执行；文件监听使用平台路径边界。回归见 [测试入口](../test/test-runner.test.js) 和 [路径与监听](../test/p2.test.ts)。
 
+Windows 桌面通过可信父子 IPC 关闭后台服务；受管任务和前台命令按存活根进程清理后代。实现见 [进程树](../src/runtime/windows-process-tree.ts)，回归见 [任务停止](../test/process-host.test.js)、[桌面退出](../test/desktop-backend.test.js) 和 [命令取消](../test/foreground-command-output.test.js)。Dashboard 夹具使用文件 URL 转路径。
+
 ```text
 scripts/install.sh         CLI 安装：公开发行版、下载校验、用户目录与 PATH
 scripts/atria.mjs          用户 CLI 启动器：init、doctor、start 等命令

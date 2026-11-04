@@ -17,7 +17,7 @@ test("process ownership refuses duplicates and drains child process groups on sh
   assert.throws(() => host.start("task", process.execPath, [], {}), /already active/);
   await host.stop(20);
   await closed;
-  assert.notEqual(child.signalCode, null);
+  assert.ok(child.exitCode !== null || child.signalCode !== null);
   assert.throws(() => host.start("next", process.execPath, [], {}), /shutting down/);
 });
 
@@ -61,7 +61,7 @@ test("stopping one task kills an uncooperative process and leaves another task r
   try {
     await Promise.all([once(first.stdout, "data"), once(other.stdout, "data")]);
     await Promise.all([host.stopKey("first", 25), host.stopKey("first", 25)]);
-    assert.notEqual(first.signalCode, null);
+    assert.ok(first.exitCode !== null || first.signalCode !== null);
     assert.equal(other.signalCode, null);
     const next = host.start("next", process.execPath, ["-e", "console.log('next')"], {
       stdio: ["ignore", "pipe", "pipe"]
@@ -72,3 +72,38 @@ test("stopping one task kills an uncooperative process and leaves another task r
     await host.stop(25);
   }
 });
+
+test(
+  "Windows stopping a task drains children and grandchildren without stopping another task",
+  { skip: process.platform !== "win32", timeout: 15000 },
+  async (t) => {
+    const host = new ProcessHost();
+    let pids = [];
+    t.after(async () => {
+      for (const pid of pids) {
+        try {
+          process.kill(pid, "SIGKILL");
+        } catch {}
+      }
+      await host.stop(25);
+    });
+    const descendant = `const {spawn}=require('node:child_process'); const grandchild=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore',detached:true}); console.log(JSON.stringify([process.pid,grandchild.pid])); setInterval(()=>{},1000);`;
+    const root = `const {spawn}=require('node:child_process'); const child=spawn(process.execPath,['-e',${JSON.stringify(descendant)}],{stdio:['ignore','pipe','ignore']});child.stdout.pipe(process.stdout);setInterval(()=>{},1000);`;
+    const child = host.start("tree", process.execPath, ["-e", root], { stdio: ["ignore", "pipe", "pipe"] });
+    const other = host.start(
+      "other",
+      process.execPath,
+      ["-e", "console.log('ready');setInterval(()=>{},1000)"],
+      { stdio: ["ignore", "pipe", "pipe"] }
+    );
+    const [[data]] = await Promise.all([once(child.stdout, "data"), once(other.stdout, "data")]);
+    pids = JSON.parse(String(data));
+    for (const pid of pids) assert.doesNotThrow(() => process.kill(pid, 0));
+    await host.stopKey("tree", 25);
+    for (const pid of pids) assert.throws(() => process.kill(pid, 0), { code: "ESRCH" });
+    assert.doesNotThrow(() => process.kill(other.pid, 0));
+    const restarted = host.start("restarted", process.execPath, ["-e", "process.exit(0)"], {});
+    await once(restarted, "close");
+    assert.equal(restarted.exitCode, 0);
+  }
+);
