@@ -1,6 +1,6 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { readFile } from "node:fs/promises";
 import { withFileLock } from "../storage/file-lock.js";
+import { atomicWrite, json } from "./fs-utils.js";
 
 /** A view points to a conversation or a stable application instance. Opening a
  * document in an empty instance does not change its tab identity. */
@@ -246,12 +246,9 @@ export class WorkbenchTabStore {
   }
 
   private async update(change: (document: TabDocument) => TabDocument): Promise<TabDocument> {
-    await mkdir(dirname(resolve(this.filePath)), { recursive: true });
     return withFileLock(this.filePath, async () => {
       const next = { ...change(await this.read()), version: 2 as const, updatedAt: new Date().toISOString() };
-      const temporary = `${this.filePath}.tmp-${process.pid}-${Date.now()}`;
-      await writeFile(temporary, `${JSON.stringify(next, null, 2)}\n`, "utf8");
-      await rename(temporary, this.filePath);
+      await atomicWrite(this.filePath, json(next));
       return next;
     });
   }

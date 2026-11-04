@@ -1,5 +1,6 @@
-import { link, mkdir, open, rename, unlink } from "node:fs/promises";
+import { link, mkdir, open, unlink } from "node:fs/promises";
 import { dirname } from "node:path";
+import { replaceFile } from "../storage/replace-file.js";
 
 /**
  * Durable small-file writes for the application stores.
@@ -31,7 +32,15 @@ export async function atomicWrite(
     } finally {
       await unlink(temporary);
     }
-  } else await rename(temporary, path);
+  } else {
+    try {
+      await replaceFile(temporary, path);
+    } finally {
+      await unlink(temporary).catch((error: NodeJS.ErrnoException) => {
+        if (error.code !== "ENOENT") throw error;
+      });
+    }
+  }
 }
 
 /** Append one line and flush it, so a reported success survives a crash. */

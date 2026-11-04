@@ -18,6 +18,8 @@ Windows verification, builds and PPTist installation use [npm without a batch sh
 
 Windows desktop shutdown requests graceful backend cleanup over parent IPC. Managed tasks and foreground commands terminate descendants while their owned root remains alive. See [process tree implementation](../../src/runtime/windows-process-tree.ts), [task stop](../../test/process-host.test.js), [desktop shutdown](../../test/desktop-backend.test.js) and [command cancellation](../../test/foreground-command-output.test.js). Dashboard fixtures convert file URLs to paths.
 
+[Bounded storage retries](../../src/storage/replace-file.ts) handle transient Windows sharing conflicts for application and Task atomic replacement. Regressions cover [tab reads/writes](../../test/application-tab-read-write.test.js) and [task state reads/writes](../../test/task-metadata-read-write.test.js).
+
 ```text
 scripts/install.sh         CLI installation: published release, verification, user prefix and PATH
 scripts/atria.mjs          User CLI launcher: init, doctor, start, etc.

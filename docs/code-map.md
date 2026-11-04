@@ -18,6 +18,8 @@ Windows 的 npm 验证、构建和 PPTist 安装通过 [无 shell 调用](../scr
 
 Windows 桌面通过可信父子 IPC 关闭后台服务；受管任务和前台命令按存活根进程清理后代。实现见 [进程树](../src/runtime/windows-process-tree.ts)，回归见 [任务停止](../test/process-host.test.js)、[桌面退出](../test/desktop-backend.test.js) 和 [命令取消](../test/foreground-command-output.test.js)。Dashboard 夹具使用文件 URL 转路径。
 
+Windows 并发读取与原子替换的临时占用由[存储层有限重试](../src/storage/replace-file.ts)处理，应用与 Task 存储共同使用；[标签读写](../test/application-tab-read-write.test.js)和[任务状态读写](../test/task-metadata-read-write.test.js)覆盖完整数据保留。
+
 ```text
 scripts/install.sh         CLI 安装：公开发行版、下载校验、用户目录与 PATH
 scripts/atria.mjs          用户 CLI 启动器：init、doctor、start 等命令
