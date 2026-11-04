@@ -15,6 +15,38 @@ MAX_OBJECTS = 1000
 MAX_TRIANGLES = 2_000_000
 
 
+def restrict_linux_execution():
+    """Namespaces limit files/network; kernel seccomp additionally forbids new executables."""
+    if sys.platform != "linux" or os.environ.get("COWORK_LINUX_SANDBOX") != "1":
+        return
+    import ctypes
+    lib = ctypes.CDLL("libseccomp.so.2", use_errno=True)
+    lib.seccomp_init.argtypes = [ctypes.c_uint32]
+    lib.seccomp_init.restype = ctypes.c_void_p
+    lib.seccomp_syscall_resolve_name.argtypes = [ctypes.c_char_p]
+    lib.seccomp_syscall_resolve_name.restype = ctypes.c_int
+    lib.seccomp_rule_add.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_int, ctypes.c_uint]
+    lib.seccomp_attr_set.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_uint32]
+    lib.seccomp_load.argtypes = [ctypes.c_void_p]
+    lib.seccomp_release.argtypes = [ctypes.c_void_p]
+    ctx = lib.seccomp_init(0x7FFF0000)  # SCMP_ACT_ALLOW
+    if not ctx:
+        raise RuntimeError("Cannot initialize execution isolation")
+    try:
+        if lib.seccomp_attr_set(ctx, 4, 1) != 0:  # TSYNC: include Blender's existing threads.
+            raise RuntimeError("Cannot isolate all Blender threads")
+        for name in ["execve", "execveat", "fork", "vfork", "socket", "connect", "bind", "listen",
+                     "accept", "accept4", "ptrace", "mount", "umount2", "unshare", "setns",
+                     "process_vm_readv", "process_vm_writev"]:
+            number = lib.seccomp_syscall_resolve_name(name.encode())
+            if number >= 0 and lib.seccomp_rule_add(ctx, 0x00050001, number, 0) != 0:
+                raise RuntimeError("Cannot install execution restriction: " + name)
+        if lib.seccomp_load(ctx) != 0:
+            raise RuntimeError("Cannot enable kernel execution isolation")
+    finally:
+        lib.seccomp_release(ctx)
+
+
 class BoundedLog(io.TextIOBase):
     def __init__(self):
         self.text = ""
@@ -270,6 +302,7 @@ if __name__ == "__main__":
     directory = request["directory"]
     log = BoundedLog()
     try:
+        restrict_linux_execution()
         result = run(request, directory, log)
         response = {"ok": True, "result": result}
     except BaseException as error:

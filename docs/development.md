@@ -8,15 +8,15 @@
 
 使用 Node.js >=22.19.0、npm 和 Git；依赖以锁文件为准，执行 `npm ci`。第一次下载 npm 依赖和 Chromium 需要网络。模型密钥仅用于实际模型请求，普通本地回归使用隔离工作区和本地协议夹具。
 
-| 开发目标      | 环境和准备                                                                         | 启动                                            |
-| ------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------- |
-| CLI / harness | `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci`，`npm run build:cli`                      | `npm run init`、`npm start`                     |
-| Web           | `npm ci`、`npm run build`；Mac 构建需 Xcode Command Line Tools                     | `npm run ui`，默认 `http://127.0.0.1:3880`      |
-| Electron App  | `npm ci`；若此前跳过 Electron 下载，执行 `npm rebuild electron`                    | `npm run desktop`                               |
-| 原生 CAD      | Apple Silicon Mac、uv，执行 `npm run cad:setup`                                    | 通过工作台或领域测试；其他平台使用 JSCAD        |
-| 原生 Blender  | Apple Silicon Mac 执行 `npm run blender:setup`，或设置 `COWORK_BLENDER_EXECUTABLE` | 源码工作台/领域测试；发行 App 首次自动准备      |
-| Computer Use  | Mac、Xcode Command Line Tools；截图需 macOS 14+、系统权限                          | 编译随 `npm run build`；动作验收需解锁桌面      |
-| Mac 安装包    | macOS 14+、Apple Silicon Mac；离线完整包另需 uv                                    | `npm run desktop:pack` / `npm run desktop:dist` |
+| 开发目标      | 环境和准备                                                                    | 启动                                            |
+| ------------- | ----------------------------------------------------------------------------- | ----------------------------------------------- |
+| CLI / harness | `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci`，`npm run build:cli`                 | `npm run init`、`npm start`                     |
+| Web           | `npm ci`、`npm run build`；Mac 构建需 Xcode Command Line Tools                | `npm run ui`，默认 `http://127.0.0.1:3880`      |
+| Electron App  | `npm ci`；若此前跳过 Electron 下载，执行 `npm rebuild electron`               | `npm run desktop`                               |
+| 原生 CAD      | Apple Silicon Mac、uv，执行 `npm run cad:setup`                               | 通过工作台或领域测试；其他平台使用 JSCAD        |
+| 原生 Blender  | Apple Silicon Mac 设置运行时；Windows 配置 [WSL2 Blender](windows-blender.md) | 源码工作台/领域测试；Mac 发行 App 首次自动准备  |
+| Computer Use  | Mac、Xcode Command Line Tools；截图需 macOS 14+、系统权限                     | 编译随 `npm run build`；动作验收需解锁桌面      |
+| Mac 安装包    | macOS 14+、Apple Silicon Mac；离线完整包另需 uv                               | `npm run desktop:pack` / `npm run desktop:dist` |
 
 `build:cli` 编译 TypeScript、准备 headless CAD 和 Python runner，不生成浏览器 bundle、Swift helper、图标或 Electron 安装包。默认 `build` / `build:base` 生成基础宿主产物，不构建 PPTist 编辑器；`build:full` 包含完整编辑器资源，非 Mac 平台自动跳过 Mac helper/图标构建。
 

@@ -4,6 +4,8 @@ English | [中文](../blender-workflow.md)
 
 This workbench retains editing support for existing Blender documents. Use [Blender Harness](external-applications.md#blender-harness) for new 3D tasks. Modeling execution, native import, and rendering in existing projects still require the [Blender component](optional-components.md).
 
+On Windows, configure the [local WSL2 Blender backend](windows-blender.md) for this built-in workbench.
+
 ## Open an existing project
 
 Open an existing Blender document from its original conversation or the Applications file list. In that workbench, choose File → Import .blend project to load a native file. Imports must be nonempty and no larger than 64 MiB. Pack textures and localize linked libraries in Blender before importing.

@@ -10,6 +10,8 @@ README 头图由 [独立 React/SVG 工程](hero/README.md)生成：`scene.jsx` �
 
 ## 目录地图
 
+Windows 内置 Blender 经 [WSL 适配](../src/software/blender/wsl-engine.ts) 调用 [隔离作业代理](../src/security/wsl-blender-job.py)；[可信桥](../src/software/blender/runner.py)在模型执行前安装 seccomp。入口、组件探测和原有快照提交保持同一调用链；[实际 WSL 回归](../test/blender-wsl.test.js)显式启用，环境与边界见 [Windows Blender](windows-blender.md)。
+
 Pi 进程入口由 [启动器](../scripts/start-pi-runtime.mjs) 选择；Windows 直接用 Node 加载 SDK 的 JavaScript CLI，不加载 npm 的 `pi.cmd` 批处理包装。回归见 [入口与参数传递](../test/pi-launcher-entry.test.js)及[真实 CLI 会话续接](../test/cli-session-resume.test.js)。该修复不代表全部 Windows 能力已通过验收。
 
 ```text

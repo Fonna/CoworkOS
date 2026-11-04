@@ -39,3 +39,5 @@ await writeFile(`${outdir}/THIRD_PARTY_LICENSES.txt`, notices.join("\n\n"));
 
 await copyFile("src/software/cad/cadquery-runner.py", `dist/src/software/cad/${CADQUERY_RUNNER_FILE}`);
 await copyFile("src/software/blender/runner.py", "dist/src/software/blender/runner.py");
+await mkdir("dist/src/security", { recursive: true });
+await copyFile("src/security/wsl-blender-job.py", "dist/src/security/wsl-blender-job.py");

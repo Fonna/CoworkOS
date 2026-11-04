@@ -18,6 +18,8 @@ Mac App 自带 PPT 编辑器，并在首次启动后自动准备 CAD/Blender 资
 
 原生组件目前面向 Apple Silicon macOS，具体支持范围见发行说明。
 
+Windows 可另行配置本机 WSL2 Blender 执行环境，见 [Windows Blender](windows-blender.md)。该环境不使用 Mac 组件安装器。
+
 ## 选择与恢复
 
 在“设置 → 应用与组件”查看状态和下载进度，下载失败可重试，也可启用或停用组件。停用后不会自动重新启用；兼容的已安装组件会在 App 更新后继续使用。

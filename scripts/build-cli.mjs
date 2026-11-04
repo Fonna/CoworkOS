@@ -16,7 +16,8 @@ await buildScienceRuntime();
 const { CADQUERY_RUNNER_FILE } = await import("../dist/src/software/cad/compute-limits.js");
 for (const [source, target] of [
   ["src/software/cad/cadquery-runner.py", `dist/src/software/cad/${CADQUERY_RUNNER_FILE}`],
-  ["src/software/blender/runner.py", "dist/src/software/blender/runner.py"]
+  ["src/software/blender/runner.py", "dist/src/software/blender/runner.py"],
+  ["src/security/wsl-blender-job.py", "dist/src/security/wsl-blender-job.py"]
 ]) {
   await mkdir(resolve(target, ".."), { recursive: true });
   await copyFile(source, target);

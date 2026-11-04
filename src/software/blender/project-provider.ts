@@ -239,11 +239,15 @@ export class BlenderProjectProvider implements SoftwareProvider {
           await atomicWrite(join(candidate, "snapshot.json"), JSON.stringify(receipt), { mode: 0o444 });
           signal?.throwIfAborted();
           await rename(candidate, join(snapshots, snapshot));
-          const handle = await open(snapshots, "r");
-          try {
-            await handle.sync();
-          } finally {
-            await handle.close();
+          // Windows cannot fsync directory handles. Each snapshot file is already flushed
+          // by atomicWrite; retain directory-entry durability on hosts that support it.
+          if (process.platform !== "win32") {
+            const handle = await open(snapshots, "r");
+            try {
+              await handle.sync();
+            } finally {
+              await handle.close();
+            }
           }
         } catch (error) {
           await rm(candidate, { recursive: true, force: true });

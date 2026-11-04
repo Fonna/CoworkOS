@@ -4,6 +4,8 @@
 
 此工作台保留已有 Blender 文档的编辑能力。新的三维任务使用[Blender Harness](external-applications.md#blender-harness)；已有工程的建模执行、原生导入和渲染仍需[Blender 组件](optional-components.md)就绪。
 
+Windows 可配置[本机 WSL2 Blender 执行器](windows-blender.md)，用于此内置工作台；无需切换至 Mac。
+
 ## 打开已有工程
 
 从原会话或应用面板的文件列表打开已有 Blender 文档。在已有工作台中，“文件 → 导入 .blend 工程”可载入原生文件；文件须非空且不超过 64 MiB，导入前先在 Blender 中打包贴图并本地化链接库。

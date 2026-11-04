@@ -26,6 +26,7 @@ import {
   type BlenderInstallSource
 } from "../blender/installer.js";
 import { blenderStatus } from "../blender/engine.js";
+import { wslBlenderStatus } from "../blender/wsl-engine.js";
 import { cadQueryPython } from "../cad/cadquery-engine.js";
 import {
   componentHome,
@@ -137,6 +138,10 @@ export function validateArtifact(
 const legacyProbe = async (id: ComponentId): Promise<{ version: string } | undefined> => {
   try {
     if (id === "blender") {
+      if (process.platform === "win32" && process.env.COWORK_BLENDER_WSL_DISTRO) {
+        const state = await wslBlenderStatus();
+        return state.available && state.version ? { version: state.version } : undefined;
+      }
       const state = await blenderStatus();
       if (!state.available || !state.executable) return undefined;
       const version = await execute(state.executable, ["--version"]);

@@ -10,6 +10,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { blenderRuntimeDirectory } from "./runtime-path.js";
 import { invalid, record } from "./model.js";
+import { runWslBlender, wslBlenderStatus } from "./wsl-engine.js";
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const runner = fileURLToPath(new URL("./runner.py", import.meta.url));
@@ -55,6 +56,10 @@ export async function blenderStatus(): Promise<{
   executable?: string;
   message?: string;
 }> {
+  if (process.platform === "win32") {
+    if (componentDisabled("blender")) return { available: false, message: "Blender 组件已停用" };
+    return wslBlenderStatus();
+  }
   if (process.platform !== "darwin") return { available: false, message: "Blender 执行隔离目前支持 macOS" };
   try {
     return { available: true, executable: await blenderExecutable() };
@@ -70,6 +75,10 @@ export async function runBlender<T>(
   signal?: AbortSignal
 ): Promise<T> {
   signal?.throwIfAborted();
+  if (process.platform === "win32") {
+    if (componentDisabled("blender")) throw invalid("Blender 组件已停用");
+    return runWslBlender(request, timeoutMs, consume, signal);
+  }
   if (process.platform !== "darwin") throw invalid("Blender 执行隔离目前支持 macOS");
   const executable = await blenderExecutable();
   const runtime = await realpath(dirname(dirname(executable)));

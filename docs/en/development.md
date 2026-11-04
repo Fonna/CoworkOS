@@ -8,15 +8,15 @@ Start with [AGENTS](../../AGENTS.en.md), [architecture](architecture.md) and the
 
 Use Node.js >=22.19.0, npm and Git. Install locked dependencies with `npm ci`. Initial dependency/Chromium downloads require network access. Ordinary tests use temporary workspaces and local model protocol fixtures; real credentials are needed only for actual model requests.
 
-| Target         | Preparation                                                                      | Launch                                                                           |
-| -------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| CLI/harness    | `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci`, `npm run build:cli`                    | `npm run init`, `npm start`                                                      |
-| Web            | `npm ci`, `npm run build`; Mac builds need Xcode Command Line Tools              | `npm run ui`, default `http://127.0.0.1:3880`                                    |
-| Electron App   | `npm ci`; run `npm rebuild electron` if download was previously skipped          | `npm run desktop`                                                                |
-| Native CAD     | Apple Silicon Mac, uv, `npm run cad:setup`                                       | Workbench/domain tests; other platforms use JSCAD                                |
-| Native Blender | Apple Silicon Mac, `npm run blender:setup`, or `COWORK_BLENDER_EXECUTABLE`       | Source workbench/domain tests; distribution App prepares Blender on first launch |
-| Computer Use   | Mac, Xcode Command Line Tools; screenshots need macOS 14+ and system permissions | Built by `npm run build`; input needs an unlocked desktop                        |
-| Mac package    | Apple Silicon Mac; offline full archives also need uv                            | `npm run desktop:pack` / `npm run desktop:dist`                                  |
+| Target         | Preparation                                                                      | Launch                                                                               |
+| -------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| CLI/harness    | `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci`, `npm run build:cli`                    | `npm run init`, `npm start`                                                          |
+| Web            | `npm ci`, `npm run build`; Mac builds need Xcode Command Line Tools              | `npm run ui`, default `http://127.0.0.1:3880`                                        |
+| Electron App   | `npm ci`; run `npm rebuild electron` if download was previously skipped          | `npm run desktop`                                                                    |
+| Native CAD     | Apple Silicon Mac, uv, `npm run cad:setup`                                       | Workbench/domain tests; other platforms use JSCAD                                    |
+| Native Blender | Apple Silicon Mac runtime; Windows [WSL2 Blender](windows-blender.md)            | Source workbench/domain tests; Mac distribution App prepares Blender on first launch |
+| Computer Use   | Mac, Xcode Command Line Tools; screenshots need macOS 14+ and system permissions | Built by `npm run build`; input needs an unlocked desktop                            |
+| Mac package    | Apple Silicon Mac; offline full archives also need uv                            | `npm run desktop:pack` / `npm run desktop:dist`                                      |
 
 `build:cli` compiles TypeScript and prepares headless CAD/Python runners without browser bundles, Swift helper, icons or Electron packages. Default `build` / `build:base` prepares base host artifacts without PPTist; `build:full` includes all editor resources; non-Mac builds skip Mac helper/icon generation.
 

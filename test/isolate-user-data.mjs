@@ -7,9 +7,12 @@ const home = mkdtempSync(join(tmpdir(), "atria-test-home-"));
 for (const key of Object.keys(process.env))
   if (
     /^(?:COWORK_|ATRIA_|PI_|SERPER_)/.test(key) &&
-    !["ATRIA_TEST_CLI_ENTRY", "COWORK_SCIENCE_TEST_PYTHON", "COWORK_SCIENCE_CHEMISTRY_TEST_PYTHON"].includes(
-      key
-    )
+    ![
+      "ATRIA_TEST_CLI_ENTRY",
+      "COWORK_SCIENCE_TEST_PYTHON",
+      "COWORK_SCIENCE_CHEMISTRY_TEST_PYTHON",
+      "COWORK_BLENDER_WSL_TEST"
+    ].includes(key)
   )
     delete process.env[key];
 process.env.ATRIA_HOME = home;

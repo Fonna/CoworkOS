@@ -2,6 +2,8 @@
 
 English | [中文](../code-map.md)
 
+Windows built-in Blender uses the [WSL adapter](../../src/software/blender/wsl-engine.ts) and [isolated job broker](../../src/security/wsl-blender-job.py). The [trusted bridge](../../src/software/blender/runner.py) installs seccomp before model execution. Explicit [native WSL tests](../../test/blender-wsl.test.js) and setup are documented in [Windows Blender](windows-blender.md).
+
 Read root [AGENTS](../../AGENTS.en.md) and the target directory's `AGENTS.md`, then use this page to locate the behavior owner and tests. See [architecture](architecture.md), [development](development.md).
 
 Branding owners: [desktop profile](../../desktop/profile.cjs), [package configuration](../../electron-builder.config.cjs), [command aliases](../../package.json), [CLI packaging](../../scripts/package-cli.mjs), and [agent identity](../../src/domain/agent-identity.ts). Stable data, keychain, protocol and update identities are documented in [installation compatibility](installation-reference.md#name-and-compatibility).

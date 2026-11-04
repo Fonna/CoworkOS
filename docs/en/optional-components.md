@@ -18,6 +18,8 @@ See [applications](applications.md) for editors and external application entries
 
 Native components currently target Apple Silicon macOS. Check the release notes for the supported scope.
 
+Windows can separately configure a local WSL2 Blender backend; see [Windows Blender](windows-blender.md). This backend does not use the Mac component installer.
+
 ## Selection and recovery
 
 Open Settings → Applications and components to check status and download progress, retry a failed download, or enable and disable components. Disabled components stay disabled. Compatible installed components remain available after App updates.
