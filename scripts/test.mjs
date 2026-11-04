@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { npmCommand } from "./npm-command.mjs";
 
 export const repositoryRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const help = `Deterministic Node tests: npm run test:unit -- [options]
@@ -95,6 +96,7 @@ export async function createTestPlan(root, options) {
 }
 
 export async function runCommand(command, args, { root = repositoryRoot, env = {} } = {}) {
+  if (command === "npm" || command === "npm.cmd") ({ command, args } = npmCommand(args));
   const child = spawn(command, args, { cwd: root, stdio: "inherit", env: { ...process.env, ...env } });
   const onInterrupt = () => child.kill("SIGINT");
   const onTerminate = () => child.kill("SIGTERM");

@@ -102,7 +102,11 @@ async function main(): Promise<void> {
       await writeFile(join(shared, "agents", "subagents", "s1", "progress.md"), "tests are green\n");
       const scoped = createBuiltinTools({ rootDirectory: root, workspaceDirectory: shared });
       const tree = await scoped.get("browse_workspace")?.execute({ mode: "tree", depth: 4 });
-      assert.match(JSON.stringify(tree), /agents\/subagents\/s1\/progress\.md/);
+      assert.ok(
+        (tree as { entries: { path: string }[] }).entries.some(
+          (entry) => entry.path === join("agents", "subagents", "s1", "progress.md")
+        )
+      );
       const search = await scoped.get("browse_workspace")?.execute({ mode: "search", query: "green" });
       assert.match(JSON.stringify(search), /progress\.md/);
       await assert.rejects(() => scoped.get("read_file")!.execute({ path: "../" }), /escapes workspace/);

@@ -123,3 +123,19 @@ test("test list is read-only and missing focused files return a failure before b
 test("child test failures propagate their actual exit code", async () => {
   assert.equal(await runCommand(process.execPath, ["-e", "process.exit(7)"]), 7);
 });
+
+test("npm runs without a batch shell even in a directory containing spaces and metacharacters", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atria npm & literal "));
+  try {
+    await writeFile(
+      join(root, "package.json"),
+      JSON.stringify({ scripts: { probe: 'node -e "process.exit(7)"' } })
+    );
+    assert.equal(
+      await runCommand(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "probe"], { root }),
+      7
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

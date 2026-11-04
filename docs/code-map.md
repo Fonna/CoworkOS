@@ -14,6 +14,8 @@ Windows 内置 Blender 经 [WSL 适配](../src/software/blender/wsl-engine.ts) �
 
 Pi 进程入口由 [启动器](../scripts/start-pi-runtime.mjs) 选择；Windows 直接用 Node 加载 SDK 的 JavaScript CLI，不加载 npm 的 `pi.cmd` 批处理包装。回归见 [入口与参数传递](../test/pi-launcher-entry.test.js)及[真实 CLI 会话续接](../test/cli-session-resume.test.js)。该修复不代表全部 Windows 能力已通过验收。
 
+Windows 的 npm 验证、构建和 PPTist 安装通过 [无 shell 调用](../scripts/npm-command.mjs) 执行；文件监听使用平台路径边界。回归见 [测试入口](../test/test-runner.test.js) 和 [路径与监听](../test/p2.test.ts)。
+
 ```text
 scripts/install.sh         CLI 安装：公开发行版、下载校验、用户目录与 PATH
 scripts/atria.mjs          用户 CLI 启动器：init、doctor、start 等命令

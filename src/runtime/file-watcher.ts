@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
-import { isAbsolute, relative, resolve } from "node:path";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 import type { WatcherEvent, WatcherPoller } from "./watcher.js";
 
 export interface FilePollingWatcherOptions {
@@ -24,11 +24,14 @@ export class FilePollingWatcher implements WatcherPoller {
 
   constructor(options: FilePollingWatcherOptions) {
     if (!options.watcherId.trim()) throw new Error("watcherId must not be empty");
-    if (isAbsolute(options.relativePath) || options.relativePath.split(/[\\/]/).includes("..")) throw new Error("relativePath must stay inside rootDirectory");
+    if (isAbsolute(options.relativePath) || options.relativePath.split(/[\\/]/).includes(".."))
+      throw new Error("relativePath must stay inside rootDirectory");
     this.watcherId = options.watcherId;
     this.rootDirectory = resolve(options.rootDirectory);
     this.targetPath = resolve(this.rootDirectory, options.relativePath);
-    if (!this.targetPath.startsWith(`${this.rootDirectory}/`) && this.targetPath !== this.rootDirectory) throw new Error("relativePath escapes rootDirectory");
+    const relativeTarget = relative(this.rootDirectory, this.targetPath);
+    if (isAbsolute(relativeTarget) || relativeTarget === ".." || relativeTarget.startsWith(`..${sep}`))
+      throw new Error("relativePath escapes rootDirectory");
     this.emitInitial = options.emitInitial ?? false;
   }
 
@@ -43,12 +46,14 @@ export class FilePollingWatcher implements WatcherPoller {
     this.previousFingerprint = fingerprint;
     if ((!changed && !firstObservation) || (firstObservation && !this.emitInitial)) return [];
     const path = relative(this.rootDirectory, this.targetPath).split("\\").join("/");
-    return [{
-      watcherId: this.watcherId,
-      source: "filesystem",
-      type: firstObservation ? "file.discovered" : "file.changed",
-      dedupeKey: `${path}:${fingerprint}`,
-      payload: { path, size: info.size, modifiedAt: info.mtime.toISOString(), sha256: digest }
-    }];
+    return [
+      {
+        watcherId: this.watcherId,
+        source: "filesystem",
+        type: firstObservation ? "file.discovered" : "file.changed",
+        dedupeKey: `${path}:${fingerprint}`,
+        payload: { path, size: info.size, modifiedAt: info.mtime.toISOString(), sha256: digest }
+      }
+    ];
   }
 }

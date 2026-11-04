@@ -384,6 +384,12 @@ async function main(): Promise<void> {
       rootDirectory: watchedRoot,
       relativePath: "status.txt"
     });
+    for (const relativePath of ["../outside.txt", "..\\outside.txt", join(watchedRoot, "status.txt")]) {
+      assert.throws(
+        () => new FilePollingWatcher({ watcherId: "invalid", rootDirectory: watchedRoot, relativePath }),
+        /relativePath must stay inside rootDirectory/
+      );
+    }
     assert.deepEqual(await fileWatcher.poll(), []);
     await writeFile(join(watchedRoot, "status.txt"), "two\n", "utf8");
     assert.equal((await fileWatcher.poll())[0]?.type, "file.changed");

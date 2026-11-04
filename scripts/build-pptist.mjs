@@ -3,6 +3,7 @@ import { readFile, readdir, writeFile, access, copyFile } from "node:fs/promises
 import { execFileSync } from "node:child_process";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { npmCommand } from "./npm-command.mjs";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const source = join(root, "vendor/pptist"),
   output = join(root, "web/assets/pptist/generated");
@@ -38,11 +39,8 @@ if ((await readFile(marker, "utf8").catch(() => "")) !== fingerprint) {
     )) ||
     (await readFile(dependencyMarker, "utf8").catch(() => "")) !== lockHash
   ) {
-    execFileSync(
-      process.platform === "win32" ? "npm.cmd" : "npm",
-      ["ci", "--ignore-scripts", "--no-audit", "--no-fund"],
-      { cwd: source, stdio: "inherit" }
-    );
+    const npm = npmCommand(["ci", "--ignore-scripts", "--no-audit", "--no-fund"]);
+    execFileSync(npm.command, npm.args, { cwd: source, stdio: "inherit" });
     await writeFile(dependencyMarker, lockHash);
   }
   execFileSync(

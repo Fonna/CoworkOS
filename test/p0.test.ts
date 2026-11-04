@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { fakeEvent } from "../src/testing/fakes.js";
 import { JsonlEventStore } from "../src/storage/event-store.js";
 import { resolveCallMode, transitionCall, type Call } from "../src/domain/types.js";
@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   assert.equal(configuredMainTimeout(runtimeSettingsEnv({ mainTimeoutMs: 0 })), 0);
   assert.equal(
     configuredWorkspaceRoot({ workspaceRoot: ".tmp-from-config" }, {}, "/repo"),
-    "/repo/.tmp-from-config"
+    resolve("/repo/.tmp-from-config")
   );
   assert.equal(
     configuredWorkspaceRoot(
@@ -42,11 +42,11 @@ async function main(): Promise<void> {
       { COWORK_WORKSPACE: "/tmp/from-env" },
       "/repo"
     ),
-    "/tmp/from-env"
+    resolve("/tmp/from-env")
   );
   assert.equal(
     configuredWorkspaceRoot({}, { ATRIA_HOME: "/fixture/atria" }, "/repo"),
-    "/fixture/atria/workspace"
+    resolve("/fixture/atria/workspace")
   );
   const completeAssistant = {
     role: "assistant",
@@ -160,13 +160,16 @@ async function main(): Promise<void> {
       reason: "new execution generation"
     });
     assert.equal((await workspace.readTask("task_1")).completion?.signal, "none");
-    assert.equal(workspace.agentWorkDir("task_1", "run_1", "sub_1").endsWith("agents/subagents/sub_1"), true);
     assert.equal(
-      workspace.sessionPath("task_1", "run_1", "main").endsWith("task_1/sessions/main/run_1.jsonl"),
-      true
+      workspace.agentWorkDir("task_1", "run_1", "sub_1"),
+      join(workspaceRoot, "task_1", "agents", "subagents", "sub_1")
+    );
+    assert.equal(
+      workspace.sessionPath("task_1", "run_1", "main"),
+      join(workspaceRoot, "task_1", "sessions", "main", "run_1.jsonl")
     );
     const preparedWorkDir = await workspace.prepareAgentWorkDir("task_1", "run_1", "sub_1");
-    assert.equal(preparedWorkDir.endsWith("task_1/agents/subagents/sub_1"), true);
+    assert.equal(preparedWorkDir, join(workspaceRoot, "task_1", "agents", "subagents", "sub_1"));
     const artifact = await workspace.publishArtifact({
       taskId: "task_1",
       runId: "run_1",

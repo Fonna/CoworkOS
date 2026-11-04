@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
 import { parseOptions, loadPlan, parseTap, stepStatus, automationOutcome } from "./release-test-plan.mjs";
+import { npmCommand } from "./npm-command.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const help = `本地发布验收：npm run test:release -- [选项]
@@ -93,7 +94,10 @@ async function runStep(step, directory, options) {
   process.once("SIGTERM", onInterrupt);
   let exitCode, error;
   try {
-    child = spawn(step.command, args, {
+    const invocation = ["npm", "npm.cmd"].includes(step.command)
+      ? npmCommand(args)
+      : { command: step.command, args };
+    child = spawn(invocation.command, invocation.args, {
       cwd: root,
       env: {
         ...process.env,
