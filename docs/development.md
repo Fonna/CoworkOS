@@ -8,6 +8,8 @@
 
 使用 Node.js >=22.19.0、npm 和 Git；依赖以锁文件为准，执行 `npm ci`。第一次下载 npm 依赖和 Chromium 需要网络。模型密钥仅用于实际模型请求，普通本地回归使用隔离工作区和本地协议夹具。
 
+Windows 的 PowerShell 准备、测试和能力边界见 [Windows 本机开发](windows-development.md)。
+
 | 开发目标      | 环境和准备                                                                    | 启动                                            |
 | ------------- | ----------------------------------------------------------------------------- | ----------------------------------------------- |
 | CLI / harness | `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci`，`npm run build:cli`                 | `npm run init`、`npm start`                     |

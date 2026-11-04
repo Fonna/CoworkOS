@@ -8,6 +8,8 @@ Start with [AGENTS](../../AGENTS.en.md), [architecture](architecture.md) and the
 
 Use Node.js >=22.19.0, npm and Git. Install locked dependencies with `npm ci`. Initial dependency/Chromium downloads require network access. Ordinary tests use temporary workspaces and local model protocol fixtures; real credentials are needed only for actual model requests.
 
+See [Windows local development](windows-development.md) for PowerShell setup, acceptance commands and platform boundaries.
+
 | Target         | Preparation                                                                      | Launch                                                                               |
 | -------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | CLI/harness    | `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci`, `npm run build:cli`                    | `npm run init`, `npm start`                                                          |

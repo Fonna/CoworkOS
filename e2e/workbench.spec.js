@@ -47,6 +47,16 @@ async function save(page, content) {
   await expect(page.locator("[data-editor-status]")).toHaveAttribute("data-state", "saved");
 }
 
+async function showConversationSidebar(page) {
+  const sidebar = page.locator(".conversation-sidebar");
+  if (!(await sidebar.isVisible())) {
+    const navigation = page.locator('[data-sidebar-view="navigation"]');
+    if (await navigation.isVisible()) await navigation.click();
+    else await page.getByRole("button", { name: "切换侧栏", exact: true }).click();
+  }
+  await expect(sidebar).toBeVisible();
+}
+
 test("TXT creation, rename, clearing, undo, download and reload work in Chromium", async ({ page }) => {
   const content = "真实浏览器验证\n中文与 Emoji 😀\n";
   await createDocument(page);
@@ -254,8 +264,8 @@ test("shell dialogs dismiss with Escape and restore focus", async ({ page }) => 
   await expect(menuTrigger).toBeVisible();
   await menuTrigger.click();
   await expect(menu).toBeVisible();
-  await expect(menu.getByRole("menuitem")).toHaveCount(7);
-  for (const action of ["rename", "pin", "unread", "export", "open", "archive"])
+  await expect(menu.getByRole("menuitem")).toHaveCount(8);
+  for (const action of ["rename", "pin", "unread", "export", "open", "archive", "delete"])
     await expect(menu.locator(`[data-session-action="${action}"]`)).toBeDisabled();
   await expect(menu.locator('[data-session-submenu="copy"]')).toBeDisabled();
   await expect(menu.locator('[data-session-action="stop"]')).toBeHidden();
@@ -314,8 +324,10 @@ test("shell dialogs dismiss with Escape and restore focus", async ({ page }) => 
   await close.press("Tab");
   await expect(appearance).toBeFocused();
   await appearance.press("Tab");
-  await expect(memory).toBeFocused();
-  await memory.press("Escape");
+  const language = page.locator("#language-select");
+  await expect(language).toBeFocused();
+  await expect(memory).toBeEnabled();
+  await language.press("Escape");
   await expect(page.locator("#profile-modal")).toBeHidden();
   await expect(profile).toBeFocused();
   await expect(page.locator("#details-modal, #details-close")).toHaveCount(0);
@@ -341,6 +353,7 @@ test("conversation and file share a resizable workspace without losing input, se
   await input.press("Home");
   await input.press("Shift+ArrowRight");
   await expect(page.locator("[data-composer-context]")).toContainText("选中：1 字符");
+  await showConversationSidebar(page);
   const sidebarDivider = page.getByRole("separator", { name: "调整会话侧栏宽度" });
   const sidebar = page.locator(".conversation-sidebar");
   const sidebarWidth = (await sidebar.boundingBox()).width;
@@ -371,10 +384,14 @@ test("conversation and file share a resizable workspace without losing input, se
   await page.locator("[data-composer-context]").click();
   await expect(page.locator(".chat-pane")).toHaveClass(/is-collaborating/);
   await expect(input).toHaveValue("人工编辑的文字");
+  await showConversationSidebar(page);
   await page.locator("#new-conversation").click();
   await expect(page.locator("[data-composer-context]")).toBeHidden();
   await expect(page.locator(".chat-pane")).not.toHaveClass(/is-collaborating/);
   await page.locator("[data-task]").filter({ hasText: "编辑《并排协作》" }).first().click();
+  await expect(input).toBeVisible();
+  await expect(page.locator("body")).toHaveClass(/application-task-layout/);
+  await showConversationSidebar(page);
   await page.locator("#apps-nav").click();
   await page.locator("#apps-panel [data-open-resource]").click();
   await expect(page.locator("#app-bind-select")).toContainText("并排协作.txt");
@@ -451,6 +468,7 @@ test("switching conversations while a bound app is open keeps the new selection 
     }
   });
   try {
+    await showConversationSidebar(page);
     await page.locator('.conversation-item[data-task="switch-target"]').click();
     await expect.poll(() => polls).toBeGreaterThan(0);
     await expect(page.locator('.conversation-item[data-task="switch-target"]')).toHaveClass(/active/);
@@ -469,6 +487,7 @@ test("switching conversations while a bound app is open keeps the new selection 
   await expect(page.locator("#composer-input")).toHaveValue("原会话的草稿");
   await expect(page.locator("[data-editor-input]")).toBeVisible();
   await expect(page.locator("[data-editor-input]")).toHaveValue("应用里尚未保存的修改");
+  await showConversationSidebar(page);
   await page.locator('.conversation-item[data-task="switch-target"]').click();
   await expect(page.locator("#composer-input")).toHaveValue("另一个会话的草稿");
   await page.reload();

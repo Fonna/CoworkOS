@@ -6,6 +6,11 @@ export default defineConfig({
   workers: 2,
   timeout: 45_000,
   expect: { timeout: 10_000 },
-  use: { browserName: "chromium", viewport: { width: 1440, height: 900 }, trace: "retain-on-failure" },
+  use: {
+    browserName: "chromium",
+    ...(process.env.COWORK_TEST_BROWSER_CHANNEL ? { channel: process.env.COWORK_TEST_BROWSER_CHANNEL } : {}),
+    viewport: { width: 1440, height: 900 },
+    trace: "retain-on-failure"
+  },
   reporter: "list"
 });

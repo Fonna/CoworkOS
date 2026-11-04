@@ -14,11 +14,9 @@ Windows 内置 Blender 经 [WSL 适配](../src/software/blender/wsl-engine.ts) �
 
 Pi 进程入口由 [启动器](../scripts/start-pi-runtime.mjs) 选择；Windows 直接用 Node 加载 SDK 的 JavaScript CLI，不加载 npm 的 `pi.cmd` 批处理包装。回归见 [入口与参数传递](../test/pi-launcher-entry.test.js)及[真实 CLI 会话续接](../test/cli-session-resume.test.js)。该修复不代表全部 Windows 能力已通过验收。
 
-Windows 的 npm 验证、构建和 PPTist 安装通过 [无 shell 调用](../scripts/npm-command.mjs) 执行；文件监听使用平台路径边界。回归见 [测试入口](../test/test-runner.test.js) 和 [路径与监听](../test/p2.test.ts)。
+Windows 本机开发与验收见 [Windows 开发](windows-development.md)。npm 验证/构建通过 [无 shell 调用](../scripts/npm-command.mjs) 启动；Dashboard 夹具使用文件 URL 转路径。Windows 桌面先经父子 IPC 关闭服务，再按存活根进程清理进程树；[进程树实现](../src/runtime/windows-process-tree.ts)、[回归](../test/process-host.test.js)与[桌面重开](../e2e/windows-desktop.spec.js)共同约束边界。
 
-Windows 桌面通过可信父子 IPC 关闭后台服务；受管任务和前台命令按存活根进程清理后代。实现见 [进程树](../src/runtime/windows-process-tree.ts)，回归见 [任务停止](../test/process-host.test.js)、[桌面退出](../test/desktop-backend.test.js) 和 [命令取消](../test/foreground-command-output.test.js)。Dashboard 夹具使用文件 URL 转路径。
-
-Windows 并发读取与原子替换的临时占用由[存储层有限重试](../src/storage/replace-file.ts)处理，应用与 Task 存储共同使用；[标签读写](../test/application-tab-read-write.test.js)和[任务状态读写](../test/task-metadata-read-write.test.js)覆盖完整数据保留。
+Windows 并发读取与原子替换的临时占用由[存储层有限重试](../src/storage/replace-file.ts)处理，应用与 Task 存储共同使用；[标签读写](../test/application-tab-read-write.test.js)和[任务状态读写](../test/task-metadata-read-write.test.js)覆盖完整数据保留。WorkBuddy 开发验收使用[本机中继](../scripts/workbuddy-relay.py)与[真实模型闭环](../scripts/model-workflow-smoke.mjs)，不作为内置 provider。
 
 ```text
 scripts/install.sh         CLI 安装：公开发行版、下载校验、用户目录与 PATH
