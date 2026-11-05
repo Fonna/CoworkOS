@@ -46,6 +46,7 @@ export const maintainedDocumentation = [
   "docs/code-map.md",
   "docs/personal-assistant-roadmap.md",
   "docs/personal-assistant-principles.md",
+  "docs/personal-context-design.md",
   "docs/architecture.md",
   "docs/module-ownership.md",
   "docs/documentation.md",

@@ -4,6 +4,8 @@
 
 本分支私人助理二次开发先读[产品定位、整改路线与进度](personal-assistant-roadmap.md)和[原则与决策](personal-assistant-principles.md)；规划职责不代表当前已交付能力，实现入口仍按本页及目录指引选择。
 
+M1 [个人情境设计](personal-context-design.md)已有[领域](../src/domain/personal-context.ts)、[快照存储](../src/runtime/personal-context-store.ts)、[内部宿主服务](../src/runtime/personal-context-service.ts)和[边界回归](../test/personal-context.test.js)。聊天和设置入口将在后续提交接入。
+
 Windows 暂停工具回归的动态依赖导入先转为文件 URL，见[暂停测试](../test/monitoring-pause.test.js)。
 
 开发 Agent 先读根目录 [AGENTS.md](../AGENTS.md) 和目标目录的 `AGENTS.md`，再用本页选择负责行为的模块和测试。职责与依赖见 [架构](architecture.md)，执行命令见 [开发指南](development.md)。

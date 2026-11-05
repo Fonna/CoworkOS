@@ -4,6 +4,8 @@ English | [中文](../code-map.md)
 
 For this branch's personal assistant work, start with the [product roadmap and progress (Chinese)](../personal-assistant-roadmap.md) and [principles and decisions (Chinese)](../personal-assistant-principles.md). Planned responsibilities do not imply delivered capabilities; use this map and directory guidance to locate implementation owners.
 
+M1 [personal context (Chinese)](../personal-context-design.md) has [domain rules](../../src/domain/personal-context.ts), [snapshot storage](../../src/runtime/personal-context-store.ts), an [internal host service](../../src/runtime/personal-context-service.ts) and [boundary tests](../../test/personal-context.test.js). Chat and settings integration follow in later commits.
+
 The Windows [pause regression](../../test/monitoring-pause.test.js) converts its dynamic dependency import to a file URL.
 
 Windows built-in Blender uses the [WSL adapter](../../src/software/blender/wsl-engine.ts) and [isolated job broker](../../src/security/wsl-blender-job.py). The [trusted bridge](../../src/software/blender/runner.py) installs seccomp before model execution. Explicit [native WSL tests](../../test/blender-wsl.test.js) and setup are documented in [Windows Blender](windows-blender.md).
