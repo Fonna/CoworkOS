@@ -4,6 +4,8 @@ English | [中文](../code-map.md)
 
 For this branch's personal assistant work, start with the [product roadmap and progress (Chinese)](../personal-assistant-roadmap.md) and [principles and decisions (Chinese)](../personal-assistant-principles.md). Planned responsibilities do not imply delivered capabilities; use this map and directory guidance to locate implementation owners.
 
+The [shared chat adapter](../../src/runtime/personal-context-chat.ts) connects both Pi paths through a [thin tool](../../.pi/runtime/tools/personal-context.ts), covered by [real Pi](../../test/personal-context-pi.test.js), [chat boundaries](../../test/personal-context-chat.test.js) and [assessment format tests](../../test/personal-context-assessment.test.js). It owns overviews, stale-query revocation, limited correction and unknown-clock-time protection. Management and UI follow in the next commit.
+
 M1 [personal context (Chinese)](../personal-context-design.md) has [domain rules](../../src/domain/personal-context.ts), [snapshot storage](../../src/runtime/personal-context-store.ts), an [internal host service](../../src/runtime/personal-context-service.ts) and [boundary tests](../../test/personal-context.test.js). Chat and settings integration follow in later commits.
 
 The Windows [pause regression](../../test/monitoring-pause.test.js) converts its dynamic dependency import to a file URL.

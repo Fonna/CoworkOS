@@ -40,7 +40,11 @@ import { recordModelRequests } from "./model-request-recording.js";
 import { withCompactionSummaryPolicy } from "./compaction-summary-policy.js";
 import { DEFAULT_TOOL_RESPONSE_CHARS, limitToolContent } from "./tool-output.js";
 import { commandOutputFeedback } from "./command-output-feedback.js";
-import { userMemoryWithinContextBudget, optionalContextSectionWithinBudget } from "./user-memory-context.js";
+import {
+  userMemoryWithinContextBudget,
+  optionalContextSectionWithinBudget,
+  personalContextWithinBudget
+} from "./user-memory-context.js";
 export type { PiThinkingLevel } from "./runtime-settings.js";
 
 export interface PiSessionOptions {
@@ -62,6 +66,8 @@ export interface PiSessionOptions {
   systemPrompt?: string;
   /** Host-owned, refreshed on every request; never stored in the conversation checkpoint. */
   prepareUserMemory?: () => Promise<string>;
+  preparePersonalContext?: () => Promise<string>;
+  refreshPersonalContext?: (messages: AgentMessage[]) => Promise<AgentMessage[]>;
   prepareProjectExperience?: () => Promise<string>;
   tools: ReadonlyMap<string, RuntimeTool>;
   /** Additional model-visible tools, e.g. orchestration/delegation tools. */
@@ -263,15 +269,21 @@ export class PiSession {
         messages: options.initialMessages ?? []
       },
       transformContext: async (messages, signal) => {
-        const compacted = await compaction.transform(messages, signal);
+        const refreshed = options.refreshPersonalContext
+          ? await options.refreshPersonalContext(messages)
+          : messages;
+        const compacted = await compaction.transform(refreshed, signal);
         const budget = {
           contextWindow: model.contextWindow,
           reserveTokens: options.compaction?.reserveTokens ?? DEFAULT_CONTEXT_COMPACTION.reserveTokens,
           maxTokens: model.maxTokens
         };
-        const personal = options.prepareUserMemory
+        const remembered = options.prepareUserMemory
           ? userMemoryWithinContextBudget(compacted, await options.prepareUserMemory(), budget)
           : compacted;
+        const personal = options.preparePersonalContext
+          ? personalContextWithinBudget(remembered, await options.preparePersonalContext(), budget)
+          : remembered;
         return options.prepareProjectExperience
           ? optionalContextSectionWithinBudget(
               personal,

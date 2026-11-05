@@ -8,6 +8,7 @@ import { resolveCapabilities } from "../../../dist/src/runtime/task-capabilities
 
 export const CORE_TOOLS = [
   "manage_user_memory",
+  "manage_personal_context",
   "load_skill",
   "read_image",
   "read_images",

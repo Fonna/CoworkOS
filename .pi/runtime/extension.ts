@@ -102,9 +102,13 @@ import { registerGoalTools } from "./tools/goals.ts";
 import { goalContext } from "../../dist/src/runtime/goal-context.js";
 import { registerWorkspaceTools } from "./tools/workspace.ts";
 import { registerUserMemoryTool } from "./tools/user-memory.ts";
+import { registerPersonalContextTool } from "./tools/personal-context.ts";
+import { personalContextSource } from "./personal-context-source.ts";
+import { PersonalContextChat, createContextAssessor } from "../../dist/src/runtime/personal-context-chat.js";
 import { UserMemoryStore, userMemoryContext } from "../../dist/src/runtime/user-memory-store.js";
 import {
   userMemoryWithinContextBudget,
+  personalContextWithinBudget,
   optionalContextSectionWithinBudget
 } from "../../dist/src/runtime/user-memory-context.js";
 import {
@@ -262,6 +266,25 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
   let userMemoryRequest = "";
   let userMemoryLearningRequest = "";
   const userMemoryStore = new UserMemoryStore();
+  const personalContext = new PersonalContextChat({
+    workspaceRoot,
+    taskId,
+    runId: mainRunId,
+    projectDirectory,
+    assess: createContextAssessor(() =>
+      baseUrl && apiKey
+        ? {
+            baseUrl,
+            apiKey,
+            model: modelId,
+            api: configuredModelApi(runtimeEnv),
+            thinkingFormat: configuredThinkingFormat(runtimeEnv),
+            supportsReasoningEffort,
+            contextWindow: configuredContextWindow(runtimeEnv)
+          }
+        : undefined
+    )
+  });
   let memoryTurnActive = false;
   const memoryLearning =
     !process.env.COWORK_DASHBOARD_URL && baseUrl && apiKey
@@ -658,6 +681,7 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
   };
 
   pi.on("before_agent_start", async (event) => {
+    personalContext.setSource(undefined);
     // Yield the connection before any setup awaits; older Tasks must not compete
     // with the user's new foreground turn for a model request.
     memoryTurnActive = true;
@@ -733,6 +757,15 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
   }
   let memoryContextSettings: SettingsManager | undefined;
   pi.on("context_with_system", async (event, ctx) => {
+    personalContext.setSource(
+      await personalContextSource(ctx, {
+        workspaceRoot,
+        taskId,
+        runId: mainRunId,
+        dashboard: Boolean(process.env.COWORK_DASHBOARD_URL)
+      }).catch(() => undefined)
+    );
+    const personal = await personalContext.project();
     const sections = continuationSections;
     let messages = sections
       ? event.messages.map((message) =>
@@ -741,6 +774,7 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
             : message
         )
       : event.messages;
+    messages = await personalContext.refreshMessages(messages);
     if (mainContext) {
       try {
         await runtimeWrites;
@@ -782,7 +816,13 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
       message.role === "system"
         ? {
             ...message,
-            sections: { ...message.sections, user_memory: "", project_experience: "", project_skills: "" }
+            sections: {
+              ...message.sections,
+              user_memory: "",
+              project_experience: "",
+              project_skills: "",
+              personal_context: ""
+            }
           }
         : message
     );
@@ -795,7 +835,7 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
         )
       : refreshed;
     const projected = projectDefaultIdentity ? scoped.map(projectAtriaSystemMessage) : scoped;
-    if ((!memory && !experience && !projectSkills) || !ctx.model) return { messages: projected };
+    if ((!memory && !experience && !projectSkills && !personal) || !ctx.model) return { messages: projected };
     // Pi's threshold check precedes context_with_system. Resolve the same SDK
     // settings (including model overrides and project trust), but never cause
     // an extra compaction solely to fit optional personal memory.
@@ -815,7 +855,11 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
       budget
     );
     return {
-      messages: optionalContextSectionWithinBudget(withExperience, "project_skills", projectSkills, budget)
+      messages: personalContextWithinBudget(
+        optionalContextSectionWithinBudget(withExperience, "project_skills", projectSkills, budget),
+        personal,
+        budget
+      )
     };
   });
 
@@ -1378,6 +1422,7 @@ export default async function registerCoworkExtension(pi: ExtensionAPI) {
   registerMonitorsTools(pi, toolContext);
   registerGoalTools(pi, toolContext);
   registerWorkspaceTools(pi, toolContext);
+  registerPersonalContextTool(pi, personalContext);
   registerUserMemoryTool(pi, {
     store: userMemoryStore,
     taskId,

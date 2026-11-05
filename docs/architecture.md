@@ -4,6 +4,8 @@
 
 CoworkOS 是本机单用户 harness，CLI、Web 和 Electron App 共用运行时与应用服务。修改入口与测试见 [代码地图](code-map.md)，环境与命令见 [开发指南](development.md)，数据归属见 [工作区与持久化](task-workspace-layout.md)。
 
+M1 [个人情境](personal-context-design.md)由领域、存储和宿主授权服务组成。[共享聊天适配](../src/runtime/personal-context-chat.ts)连接两条 Pi 路径，提供独立语义校验、当前投影、概览查询和旧查询失效。默认关闭，与稳定记忆分开，不创建目标或外部动作；HTTP 和设置管理将在下一组提交接入。
+
 ## 装配与依赖方向
 
 ```text

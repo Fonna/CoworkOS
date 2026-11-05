@@ -17,6 +17,7 @@ import type { ModelSampling } from "./model-profile.js";
 import type { ContextCompactionSettings } from "./context-compaction.js";
 import { PiSession, type PiSessionResult, type PiThinkingLevel } from "./pi-session.js";
 import { createUserMemoryTool } from "./user-memory-tools.js";
+import { PersonalContextChat, createContextAssessor } from "./personal-context-chat.js";
 import { UserMemoryStore, userMemoryContext } from "./user-memory-store.js";
 import { ProjectExperienceStore, projectExperienceIdentity } from "./project-experience-store.js";
 import { projectExperienceContext } from "./project-experience-context.js";
@@ -244,6 +245,48 @@ export class RunService {
           })
         );
       }
+      const personalContext =
+        agentId === "main"
+          ? new PersonalContextChat({
+              workspaceRoot: this.workspaceRoot,
+              taskId: input.taskId,
+              runId: input.runId,
+              projectDirectory: input.projectDirectory,
+              assess: createContextAssessor(() => ({
+                baseUrl: input.baseUrl,
+                apiKey: input.apiKey,
+                model: input.model,
+                api,
+                thinkingFormat,
+                supportsReasoningEffort,
+                contextWindow: input.contextWindow
+              }))
+            })
+          : undefined;
+      if (personalContext) {
+        if (
+          tools.has("manage_personal_context") ||
+          agentTools.some((tool) => tool.name === "manage_personal_context")
+        )
+          throw new Error("manage_personal_context is reserved for the Main personal context service");
+        const restoredUser = restored?.messages
+          .slice()
+          .reverse()
+          .find((message) => message.role === "user");
+        const sourceText = shouldResume ? restored?.prompt : input.prompt;
+        personalContext.setSource(
+          sourceText && sourceText.length <= 6000
+            ? {
+                messageId: `run:${input.runId}`,
+                text: sourceText,
+                receivedAt: new Date(
+                  restoredUser?.role === "user" ? restoredUser.timestamp : Date.now()
+                ).toISOString()
+              }
+            : undefined
+        );
+        tools.set("manage_personal_context", personalContext.tool);
+      }
       let projectSkillToolAvailable = tools.has("load_skill");
       try {
         projectSkillToolAvailable ||= Boolean((await projectExperience?.readProfile())?.skills.length);
@@ -290,6 +333,8 @@ export class RunService {
         tools,
         ...(agentId === "main"
           ? {
+              preparePersonalContext: () => personalContext!.project(),
+              refreshPersonalContext: (messages) => personalContext!.refreshMessages(messages),
               prepareProjectExperience: async () => {
                 try {
                   return projectExperience

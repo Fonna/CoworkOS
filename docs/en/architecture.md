@@ -4,6 +4,8 @@ English | [中文](../architecture.md)
 
 CoworkOS is a local, single-user harness. CLI, Web and Electron share runtime and application services. Use the [code map](code-map.md) to find owners and tests, the [development guide](development.md) for setup, and the [workspace reference](../task-workspace-layout.md) (Chinese) for persistence.
 
+M1 [personal context (Chinese)](../personal-context-design.md) provides domain rules, storage and host authorization. The [shared chat adapter](../../src/runtime/personal-context-chat.ts) connects both Pi paths with independent assessment, current projections, overview queries and stale-query revocation. Switches default off; stable memory remains separate. HTTP/settings integration follows in the next commit; registration creates no goals or external actions.
+
 ## Composition and dependencies
 
 ```text

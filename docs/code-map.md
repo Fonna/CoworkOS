@@ -4,6 +4,8 @@
 
 本分支私人助理二次开发先读[产品定位、整改路线与进度](personal-assistant-roadmap.md)和[原则与决策](personal-assistant-principles.md)；规划职责不代表当前已交付能力，实现入口仍按本页及目录指引选择。
 
+[共享聊天适配与语义检查](../src/runtime/personal-context-chat.ts)接两条 Pi 路径及[薄工具](../.pi/runtime/tools/personal-context.ts)，由[真实 Pi 回归](../test/personal-context-pi.test.js)、[聊天边界](../test/personal-context-chat.test.js)和[校验格式](../test/personal-context-assessment.test.js)覆盖。个人概览、旧查询失效、有限纠错与未知钟点保护归该适配层负责；管理接口和界面随后接入。
+
 M1 [个人情境设计](personal-context-design.md)已有[领域](../src/domain/personal-context.ts)、[快照存储](../src/runtime/personal-context-store.ts)、[内部宿主服务](../src/runtime/personal-context-service.ts)和[边界回归](../test/personal-context.test.js)。聊天和设置入口将在后续提交接入。
 
 Windows 暂停工具回归的动态依赖导入先转为文件 URL，见[暂停测试](../test/monitoring-pause.test.js)。
