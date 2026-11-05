@@ -32,6 +32,8 @@
   <img src="docs/assets/readme-workspace.gif" alt="CoworkOS workspace showing a collaborative turbofan CAD task" width="100%">
 </p>
 
+This branch adds [personal context and arrangements (Chinese)](docs/personal-context-design.md) to chat and Settings → Context and plans: explicit saves, current facts across chats, cancellation and deletion, off by default. Task coordination and full M1 acceptance remain pending; see [progress (Chinese)](docs/personal-assistant-roadmap.md).
+
 ## Install
 
 **macOS desktop** (Apple Silicon, macOS 14+). Requires [Node.js ≥22.19.0](https://nodejs.org/en/download):
@@ -71,7 +73,6 @@ coworkos
 ## Acknowledgments and license
 
 CoworkOS is licensed under [MIT](LICENSE).
-
 
 ## Citation
 

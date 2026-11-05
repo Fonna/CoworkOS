@@ -17,6 +17,8 @@ import { handleApplicationRequest } from "./application-routes.js";
 import { handleProjectExperienceRequest } from "./project-experience-routes.js";
 import type { ProjectExperienceStore } from "../runtime/project-experience-store.js";
 import { handleUserMemoryRequest } from "./user-memory-routes.js";
+import { handlePersonalContextRequest } from "./personal-context-routes.js";
+import type { PersonalContextManagement } from "../runtime/personal-context-management.js";
 import type { UserMemoryStore } from "../runtime/user-memory-store.js";
 import { serveArtifact } from "./artifact-response.js";
 import { dashboardContentPolicy, HttpError, localRequestUrl, readJsonBody, sendJson } from "./http.js";
@@ -53,6 +55,7 @@ type WorkspaceDirectory = ReturnType<typeof createWorkspaceDirectory>;
 type RunService = ReturnType<typeof createDashboardRunService>;
 export interface DashboardRoutePorts {
   userMemory?: UserMemoryStore;
+  personalContext?: PersonalContextManagement;
   projectExperienceStore?: (projectId: string) => Promise<ProjectExperienceStore | undefined>;
   watchers?: ReturnType<typeof createWatchService>;
   goals?: ReturnType<typeof createGoalService>;
@@ -149,6 +152,11 @@ export function createDashboardHandler(
       )
         return;
       if (ports.userMemory && (await handleUserMemoryRequest(request, response, url, ports.userMemory)))
+        return;
+      if (
+        ports.personalContext &&
+        (await handlePersonalContextRequest(request, response, url, ports.personalContext))
+      )
         return;
       if (ports.uploads && (await handleUploadRequest(request, response, url, ports.uploads))) return;
       if (ports.components && url.pathname === "/api/components" && request.method === "GET") {

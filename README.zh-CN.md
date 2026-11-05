@@ -32,6 +32,8 @@
   <img src="docs/assets/readme-workspace.gif" alt="CoworkOS 工作台：人和智能体协作完成涡扇发动机 CAD 任务" width="100%">
 </p>
 
+本分支的[个人情境与已有安排](docs/personal-context-design.md)已接入聊天和“设置 → 情境与安排”，支持明确保存、跨对话读取当前版本和取消/删除，默认关闭。事项联动与完整 M1 验收仍待完成，详见[进度](docs/personal-assistant-roadmap.md)。
+
 ## 安装
 
 **macOS 桌面版**（Apple Silicon，macOS 14+）。需要 [Node.js ≥22.19.0](https://nodejs.org/en/download)：

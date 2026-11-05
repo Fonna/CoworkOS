@@ -18,6 +18,8 @@ The native desktop host additionally requires its session token for `/api/*` (Ht
 
 ```text
 GET  /api/models
+GET  /api/personal-context
+POST /api/personal-context
 GET  /api/model-settings
 POST /api/model-settings
 POST /api/model-settings/test
@@ -53,6 +55,14 @@ The legacy global `POST /api/workspace/choose` still accepts `{ workspaceRoot }`
 Model connection testing accepts `{ baseUrl, model, api?, apiKey?, supportsImages? }` without saving. An omitted or blank key uses the existing local secret; environment-managed connections test the effective configuration. `api` accepts `openai-completions` (default for legacy configurations) or `openai-responses`; unknown values are rejected before saving or requesting. Omitted values preserve the saved format. GET settings returns the effective format; `COWORK_MODEL_API` overrides local configuration and makes Web settings environment-managed.
 
 The service verifies a function call in the selected protocol and, when enabled, a synthetic image challenge. Success returns `{ ok: true, model, supportsImages, durationMs }`; errors contain only local diagnostics and never provider response bodies or credentials. Desktop uses trusted `bookman:test-model` IPC with the same probe. This is a connection check, not a general quality benchmark or a guarantee of arbitrary tool compatibility.
+
+## Personal context
+
+`GET /api/personal-context` is an explicit local-user management view with `Cache-Control: no-store`. It returns `{basis:{epoch,generation}, snapshotRevision, settings:{enabled,registrationEnabled,sensitiveEnabled}, records}`. All switches default off. This management view includes records while use or sensitive processing is disabled; it is never registered as a model capability. Records expose id/revision, kind/status, title/content, visibility, sensitivity, known time fields and computed validity, without host paths, source quotes, receipts or request stamps.
+
+`POST` requires `{basis, snapshotRevision, change}` from the latest GET. `change` is one of `{action:"settings", settings:{enabled?,registrationEnabled?,sensitiveEnabled?}}`, `{action:"cancel",id,revision}`, `{action:"end",id,revision}`, or `{action:"forget",id,revision}`. Validation and revision checks occur under the same store lock. Cancel only marks an arrangement cancelled; end marks a state or arrangement ended. These actions do not modify external bookings or calendars. Forget removes this store's content, retains replay barriers and invalidates old requests; original chats, backups and already sent content remain. Setting changes and deletion raise generation. Responses return a fresh management view.
+
+The shared Host/Origin and desktop session boundary applies. Invalid input returns 400, stale versions/inactive records/capacity failures 409, corrupt/unknown storage or I/O unavailability 503. Existing committed files remain intact. Refresh after a conflict; do not retry old payloads automatically. Model chat access uses the separate, restricted `manage_personal_context` tool; source identity and permissions cannot be supplied by the model. Chat registration and current-context behavior, limits and remaining integration work are documented in the [Chinese contract](personal-context-design.md).
 
 ## Project experience
 

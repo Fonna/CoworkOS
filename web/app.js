@@ -22,6 +22,7 @@ import { installDesktopSettings } from "./assets/controllers/desktop-settings.js
 import { installComponentSettings } from "./assets/controllers/component-settings.js";
 import { installScienceSettings } from "./assets/controllers/science-settings.js";
 import { installUserMemorySettings } from "./assets/controllers/user-memory-settings.js";
+import { installPersonalContextSettings } from "./assets/controllers/personal-context-settings.js";
 import { installComponentPreparation } from "./assets/controllers/component-preparation.js";
 import { installDesktopUpdates } from "./assets/controllers/desktop-updates.js";
 import { presentToolCall } from "./assets/tool-presentation.js";
@@ -2285,3 +2286,4 @@ const modelSettings = installDesktopSettings({
 $("#model-setup-button").addEventListener("click", () => void modelSettings.open());
 installScienceSettings({ overview: settingsOverview, showToast });
 installUserMemorySettings({ overview: settingsOverview, showToast });
+installPersonalContextSettings({ overview: settingsOverview, showToast });

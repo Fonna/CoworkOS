@@ -1,5 +1,29 @@
 // Shared App/Web chrome. User content is never passed through this catalog.
 export default {
+  情境与安排: "Context and plans",
+  管理情境与安排: "Manage context and plans",
+  关闭情境与安排: "Close context and plans",
+  使用情境与安排: "Use context and plans",
+  从对话登记: "Register from chat",
+  处理敏感情境: "Process sensitive context",
+  "关闭后保留记录，后续请求不再自动读取。":
+    "Turning this off keeps records and stops automatic context loading.",
+  "允许从明确的本人陈述登记；关闭时仍可明确要求保存。登记校验会使用当前模型。":
+    "Allow clear first-person reports. Explicit saves remain available when off. Validation uses the current model.",
+  "允许为个人安排处理健康等敏感信息；默认关闭。":
+    "Allow sensitive information, including health, for personal planning. Off by default.",
+  暂无情境与安排: "No context or plans yet",
+  有效: "Current",
+  已取消或结束: "Cancelled or ended",
+  尚未生效: "Not yet effective",
+  待核实: "Needs review",
+  取消安排: "Cancel plan",
+  "仅更新个人情境，不取消外部预订或会议。":
+    "Updates personal context only; does not cancel external bookings or meetings.",
+  结束状态: "End state",
+  情境暂不可用: "Personal context unavailable",
+  "删除此情境？本情境库中的正文将清除；原聊天、备份及已发送内容仍保留。":
+    "Delete this context? Its content will be removed from this store. Original chats, backups and previously sent content remain.",
   已创建: "Created",
   空闲中: "Idle",
   工作中: "Working",

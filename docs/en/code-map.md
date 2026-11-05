@@ -4,15 +4,19 @@ English | [中文](../code-map.md)
 
 For this branch's personal assistant work, start with the [product roadmap and progress (Chinese)](../personal-assistant-roadmap.md) and [principles and decisions (Chinese)](../personal-assistant-principles.md). Planned responsibilities do not imply delivered capabilities; use this map and directory guidance to locate implementation owners.
 
-The [shared chat adapter](../../src/runtime/personal-context-chat.ts) connects both Pi paths through a [thin tool](../../.pi/runtime/tools/personal-context.ts), covered by [real Pi](../../test/personal-context-pi.test.js), [chat boundaries](../../test/personal-context-chat.test.js) and [assessment format tests](../../test/personal-context-assessment.test.js). It owns overviews, stale-query revocation, limited correction and unknown-clock-time protection. Management and UI follow in the next commit.
-
-M1 [personal context (Chinese)](../personal-context-design.md) has [domain rules](../../src/domain/personal-context.ts), [snapshot storage](../../src/runtime/personal-context-store.ts), an [internal host service](../../src/runtime/personal-context-service.ts) and [boundary tests](../../test/personal-context.test.js). Chat and settings integration follow in later commits.
-
-The Windows [pause regression](../../test/monitoring-pause.test.js) converts its dynamic dependency import to a file URL.
+M1 personal context has [domain rules](../../src/domain/personal-context.ts), a [store](../../src/runtime/personal-context-store.ts), an [internal host service](../../src/runtime/personal-context-service.ts) and [boundary tests](../../test/personal-context.test.js). The [shared chat adapter and semantic check](../../src/runtime/personal-context-chat.ts) connects both Pi paths through a [thin tool](../../.pi/runtime/tools/personal-context.ts), covered by [real Pi](../../test/personal-context-pi.test.js) and [chat boundary](../../test/personal-context-chat.test.js) tests. [Management](../../src/runtime/personal-context-management.ts) connects [HTTP](../../src/dashboard/personal-context-routes.ts), [settings](../../web/assets/controllers/personal-context-settings.js), [API tests](../../test/personal-context-api.test.js) and a [browser workflow](../../e2e/personal-context.spec.js). See the [Chinese contract](../personal-context-design.md). Inbox/task references remain pending; stable memory and goal handoffs remain separate. The Windows [pause regression](../../test/monitoring-pause.test.js) converts its dynamic dependency import to a file URL.
 
 Windows built-in Blender uses the [WSL adapter](../../src/software/blender/wsl-engine.ts) and [isolated job broker](../../src/security/wsl-blender-job.py). The [trusted bridge](../../src/software/blender/runner.py) installs seccomp before model execution. Explicit [native WSL tests](../../test/blender-wsl.test.js) and setup are documented in [Windows Blender](windows-blender.md).
 
 Read root [AGENTS](../../AGENTS.en.md) and the target directory's `AGENTS.md`, then use this page to locate the behavior owner and tests. See [architecture](architecture.md), [development](development.md).
+
+The shared personal-context chat adapter owns failure diagnostics and stale query invalidation. Settings conflicts retain the actual tool error, and trusted message receipt time always supplies relative-date context. Both Pi paths cover conflict feedback; never repair an error by renewing an old authorization.
+
+[Assessment response tests](../../test/personal-context-assessment.test.js) cover JSON presentation envelopes and rejection boundaries. Both real Pi paths also cover fenced approvals/refusals and invalid responses that must save no record.
+
+Personal overviews and specific planning requests share relevance admission in the chat adapter. Questions such as "What's coming up for me?" support cross-chat queries, with a distinct diagnosis for unrecognized requests. Chat boundaries, both Pi paths and the browser workflow cover this behavior; use, sensitive-processing and visibility limits still apply.
+
+The domain schema owns cross-field rules for context kinds. The chat adapter limits argument corrections, matches source whitespace while preserving original evidence, and returns that saving does not schedule a reminder. Tool field descriptions match runtime validation; chat, real Pi and browser regressions cover correcting a wrong kind and persisting the result.
 
 Branding owners: [desktop profile](../../desktop/profile.cjs), [package configuration](../../electron-builder.config.cjs), [command aliases](../../package.json), [CLI packaging](../../scripts/package-cli.mjs), and [agent identity](../../src/domain/agent-identity.ts). Stable data, keychain, protocol and update identities are documented in [installation compatibility](installation-reference.md#name-and-compatibility).
 

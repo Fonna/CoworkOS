@@ -4,13 +4,17 @@
 
 本分支私人助理二次开发先读[产品定位、整改路线与进度](personal-assistant-roadmap.md)和[原则与决策](personal-assistant-principles.md)；规划职责不代表当前已交付能力，实现入口仍按本页及目录指引选择。
 
-[共享聊天适配与语义检查](../src/runtime/personal-context-chat.ts)接两条 Pi 路径及[薄工具](../.pi/runtime/tools/personal-context.ts)，由[真实 Pi 回归](../test/personal-context-pi.test.js)、[聊天边界](../test/personal-context-chat.test.js)和[校验格式](../test/personal-context-assessment.test.js)覆盖。个人概览、旧查询失效、有限纠错与未知钟点保护归该适配层负责；管理接口和界面随后接入。
-
-M1 [个人情境设计](personal-context-design.md)已有[领域](../src/domain/personal-context.ts)、[快照存储](../src/runtime/personal-context-store.ts)、[内部宿主服务](../src/runtime/personal-context-service.ts)和[边界回归](../test/personal-context.test.js)。聊天和设置入口将在后续提交接入。
-
-Windows 暂停工具回归的动态依赖导入先转为文件 URL，见[暂停测试](../test/monitoring-pause.test.js)。
+[M1 情境与已有安排](personal-context-design.md)已有[领域](../src/domain/personal-context.ts)、[存储](../src/runtime/personal-context-store.ts)、[宿主服务](../src/runtime/personal-context-service.ts)及[内部边界回归](../test/personal-context.test.js)。[聊天适配与语义检查](../src/runtime/personal-context-chat.ts)接两条 Pi 路径及[薄工具](../.pi/runtime/tools/personal-context.ts)，由[真实 Pi 测试](../test/personal-context-pi.test.js)和[聊天边界测试](../test/personal-context-chat.test.js)验证；[管理服务](../src/runtime/personal-context-management.ts)连接[HTTP](../src/dashboard/personal-context-routes.ts)、[设置页](../web/assets/controllers/personal-context-settings.js)、[API 测试](../test/personal-context-api.test.js)与[浏览器闭环](../e2e/personal-context.spec.js)。Inbox 和事项引用仍待接入，不替换稳定记忆或目标交接。Windows 暂停工具回归的动态依赖导入先转为文件 URL，见[暂停测试](../test/monitoring-pause.test.js)。
 
 开发 Agent 先读根目录 [AGENTS.md](../AGENTS.md) 和目标目录的 `AGENTS.md`，再用本页选择负责行为的模块和测试。职责与依赖见 [架构](architecture.md)，执行命令见 [开发指南](development.md)。
+
+情境工具的失败诊断与旧查询失效由共享聊天适配负责；开关变化后的冲突保留真实错误，日期依据始终来自可信消息接收时间。两条 Pi 回归同时覆盖冲突反馈，不能用重新签发旧授权修复报错。
+
+独立语义检查的 JSON 展示格式兼容与拒绝边界由[校验响应回归](../test/personal-context-assessment.test.js)覆盖，真实 Pi 回归同时检查带代码块的许可/拒绝及无效响应零落盘。
+
+个人事项概览与具体规划共用聊天适配的相关性规则；“最近我有什么事”应能跨对话查询，未识别的请求使用独立诊断。聊天边界、两条 Pi 路径与浏览器闭环同时覆盖此行为，读取仍受使用、敏感处理和范围约束。
+
+情境类型的跨字段约束由领域 schema 负责；聊天适配提供纠错预算、来源空白匹配及保存不等于定时提醒的结果，工具字段说明与运行时校验保持一致。聊天、真实 Pi 和浏览器回归覆盖错误类型纠正后实际落盘。
 
 品牌入口：桌面显示名在 [profile](../desktop/profile.cjs)，安装包名在 [打包配置](../electron-builder.config.cjs)，CLI 命令与兼容别名在 [package](../package.json) 和 [CLI 打包](../scripts/package-cli.mjs)，会话身份在 [agent identity](../src/domain/agent-identity.ts)。CoworkOS 的旧数据、钥匙串、协议与更新兼容规则见 [安装参考](installation-reference.md#名称与旧版兼容)。
 

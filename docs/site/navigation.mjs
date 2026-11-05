@@ -29,6 +29,7 @@ export const navigation = [
       ["docs/architecture.md", "架构", "Architecture"],
       ["docs/personal-assistant-roadmap.md", "私人助理整改路线", "Personal assistant roadmap (Chinese)"],
       ["docs/personal-assistant-principles.md", "二次开发原则", "Development principles (Chinese)"],
+      ["docs/personal-context-design.md", "M1 情境实现设计", "M1 context design (Chinese)"],
       ["docs/product-api.md", "HTTP / SSE API", "HTTP / SSE API"],
       ["docs/software-integration.md", "接入应用与工具", "Software integration"],
       ["docs/task-workspace-layout.md", "文件与数据", "Files & storage"],

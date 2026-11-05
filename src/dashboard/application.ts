@@ -55,6 +55,7 @@ import { mainIsAlive, readHeartbeat } from "../runtime/main-heartbeat.js";
 import { createModelSettings } from "./model-settings.js";
 import { createDashboardHandler, type DashboardRoutePorts } from "./routes.js";
 import { UserMemoryStore } from "../runtime/user-memory-store.js";
+import { PersonalContextManagement } from "../runtime/personal-context-management.js";
 import {
   ProjectExperienceStore,
   listProjectExperienceIdentities
@@ -588,6 +589,7 @@ export function createDashboardApplication(
   });
   const routes: DashboardRoutePorts = {
     userMemory,
+    personalContext: new PersonalContextManagement(),
     projectExperienceStore,
     watchers,
     goals: createGoalService({
