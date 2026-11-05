@@ -4,6 +4,8 @@ English | [中文](../code-map.md)
 
 For this branch's personal assistant work, start with the [product roadmap and progress (Chinese)](../personal-assistant-roadmap.md) and [principles and decisions (Chinese)](../personal-assistant-principles.md). Planned responsibilities do not imply delivered capabilities; use this map and directory guidance to locate implementation owners.
 
+The Windows [pause regression](../../test/monitoring-pause.test.js) converts its dynamic dependency import to a file URL.
+
 Windows built-in Blender uses the [WSL adapter](../../src/software/blender/wsl-engine.ts) and [isolated job broker](../../src/security/wsl-blender-job.py). The [trusted bridge](../../src/software/blender/runner.py) installs seccomp before model execution. Explicit [native WSL tests](../../test/blender-wsl.test.js) and setup are documented in [Windows Blender](windows-blender.md).
 
 Read root [AGENTS](../../AGENTS.en.md) and the target directory's `AGENTS.md`, then use this page to locate the behavior owner and tests. See [architecture](architecture.md), [development](development.md).

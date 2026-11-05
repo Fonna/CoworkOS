@@ -187,7 +187,7 @@ test("model guidance and question timeouts cannot resume a paused monitor or cre
   const f = await fixture(t);
   const tools = new Map();
   const requirePi = createRequire(import.meta.resolve("@earendil-works/pi-coding-agent"));
-  const { createJiti } = await import(requirePi.resolve("jiti"));
+  const { createJiti } = await import(pathToFileURL(requirePi.resolve("jiti")).href);
   const context = {
     taskId: "task",
     mainRunId: "main-task",
