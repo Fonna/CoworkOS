@@ -17,6 +17,7 @@ import { ResearchPollingWatcher } from "../runtime/research-watcher.js";
 import { CoordinatorRuntime } from "../runtime/coordinator-runtime.js";
 import { InboxStore } from "../runtime/scheduler.js";
 import { WatchSupervisor, WatchSupervisorLoop } from "../runtime/watch-supervisor.js";
+import { PersonalContextDelivery } from "../runtime/personal-context-delivery.js";
 import { MainSupervisor, MainSupervisorLoop, spawnMainProcess } from "../runtime/main-supervisor.js";
 import { atriaInstallRoot } from "../tools/protected-paths.js";
 import { HumanRequestStore } from "../runtime/human.js";
@@ -424,6 +425,7 @@ async function main() {
     if (!apiKey || !baseUrl) fail("watch-supervisor 需要 COWORK_API_BASE 和 COWORK_API_KEY");
     const controller = new AbortController();
     const supervisor = new WatchSupervisor({
+      personalContext: new PersonalContextDelivery(),
       workspaceRoot,
       signal: controller.signal,
       baseUrl,

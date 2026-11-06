@@ -12,6 +12,8 @@ import { WatchProgramStore } from "./watch-program-store.js";
 import { routeGoalMessage, discardGoalMessage } from "./goal-routing.js";
 import { LocalWorkspaceStore } from "../workspace/workspace-store.js";
 import { monitoringPrograms } from "./monitoring-control.js";
+import { PersonalContextDelivery } from "./personal-context-delivery.js";
+import type { PersonalContextStore } from "./personal-context-store.js";
 
 interface DeliveredMessage {
   customType: string;
@@ -51,7 +53,8 @@ export class MainInboxDelivery {
   constructor(
     private readonly workspaceRoot: string,
     private readonly taskId: string,
-    private readonly runId: string
+    private readonly runId: string,
+    private readonly options: { personalContextStore?: PersonalContextStore } = {}
   ) {
     const runPath = join(workspaceRoot, taskId, "runs", runId);
     this.inbox = new InboxStore(join(runPath, "agents", "main", "inbox-store.json"));
@@ -103,6 +106,16 @@ export class MainInboxDelivery {
         (await new LocalWorkspaceStore(this.workspaceRoot).readTask(this.taskId)).monitoring?.scope ===
         "background";
       for (const candidate of candidates) {
+        if (
+          (candidate.payload as { type?: string } | undefined)?.type === "personal_context.changed" &&
+          !(await new PersonalContextDelivery(this.options.personalContextStore).accepts(
+            { workspaceRoot: this.workspaceRoot, taskId: this.taskId, runId: this.runId },
+            candidate.payload
+          ))
+        ) {
+          await discardGoalMessage(this.inbox, candidate);
+          continue;
+        }
         const route = routeGoalMessage(programs, background, candidate);
         if (route === "hold") continue;
         if (route === "discard") {
@@ -137,6 +150,16 @@ export class MainInboxDelivery {
         if (this.humanAnswerWaits && isHumanAnswerMessage(candidate)) continue;
         const message = await this.inbox.leaseMessage("main", candidate.messageId, 60_000, this.consumerId);
         if (message?.state !== "leased" || message.lease?.consumerId !== this.consumerId) continue;
+        if (
+          (message.payload as { type?: string } | undefined)?.type === "personal_context.changed" &&
+          !(await new PersonalContextDelivery(this.options.personalContextStore).accepts(
+            { workspaceRoot: this.workspaceRoot, taskId: this.taskId, runId: this.runId },
+            message.payload
+          ))
+        ) {
+          await this.inbox.consume(message.messageId);
+          continue;
+        }
         // A tool can start waiting while the asynchronous lease is acquired.
         if (this.humanAnswerWaits && isHumanAnswerMessage(message)) {
           await this.inbox.release(message.messageId);

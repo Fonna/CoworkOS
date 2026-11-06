@@ -1,6 +1,6 @@
 # M1 个人情境与已有安排：实现设计
 
-更新日期：2026-11-05。对应 [M1-01 至 M1-05、R1/R2/R6、S1/S2/S9](personal-assistant-roadmap.md)。状态：领域、存储、两条 Pi 聊天路径、当前请求投影及设置管理已接入；事项引用、Inbox 投递和完整 M1 验收仍待完成。当前入口和内部合同分别说明已实现行为，其后章节保留完整集成设计，不能视为全部交付。专项正文暂为中文。
+更新日期：2026-11-06。对应 [M1-01 至 M1-05、R1/R2/R6、S1/S2/S9](personal-assistant-roadmap.md)。状态：领域、存储、两条 Pi 聊天路径、当前请求投影及设置管理已接入；显式 Task/Run 引用、Inbox 投递及限定范围只读恢复已接入；持续授权与完整 M1 验收仍待完成。当前入口和内部合同分别说明已实现行为，其后章节保留完整集成设计，不能视为全部交付。专项正文暂为中文。
 
 ## 用户效果与交付范围
 
@@ -28,13 +28,19 @@
 | `src/runtime/personal-context-delivery.ts`   | 将同快照中的待投递意图写入既有 Inbox，恢复重放；不创建新调度器               |
 | `.pi/runtime/tools/personal-context.ts`      | 薄工具注册，调用已构建服务；宿主填充身份，模型不能指定用户数据根             |
 
-领域、存储和内部服务已创建。聊天读取与投影合并在共享 [PersonalContextChat](../src/runtime/personal-context-chat.ts)，两条 Pi 路径和[薄工具](../.pi/runtime/tools/personal-context.ts)复用它；[本地管理服务](../src/runtime/personal-context-management.ts)由[路由](../src/dashboard/personal-context-routes.ts)及[设置页](../web/assets/controllers/personal-context-settings.js)调用。投递器与事项引用仍待实现，当前不会因登记启动后台工作。
+领域、存储和内部服务已创建。聊天读取与投影合并在共享 [PersonalContextChat](../src/runtime/personal-context-chat.ts)，两条 Pi 路径和[薄工具](../.pi/runtime/tools/personal-context.ts)复用它；[本地管理服务](../src/runtime/personal-context-management.ts)由[路由](../src/dashboard/personal-context-routes.ts)及[设置页](../web/assets/controllers/personal-context-settings.js)调用。[关联与投递](../src/runtime/personal-context-delivery.ts)使用既有轮询和 Inbox；仅登记不会启动后台工作。
 
 ## 聊天与设置的当前入口（M1-05）
 
 启动开发项目后，在“设置 → 情境与安排 → 使用情境与安排”开启使用。在对话 A 明确说“请把我的上海出差保存为跨对话个人情境：2027 年 6 月 10 日 9 点至 12 日 18 点，上海时间，行程已确认”，再在新对话 B 说“帮我安排上海出差期间的会议”；相关模型请求会获得当前版本。示例是合成资料，不代表用户的真实行程。改期、取消或遗忘可在聊天明确提出；设置页可查看全部记录、标记取消/结束、删除，也可在使用关闭时管理。
 
-工具 `manage_personal_context` 支持 `query/save/update/forget`，模型不能传入数据根、消息身份、权限或敏感许可。保存/更新需要完整 `context`，纠正与删除需要当前 `id/revision`；`query` 可按已知 `id` 读取。宿主从当前原始用户消息取得 quote、消息 ID 和接收时间，替换模型的 observedAt；Dashboard 附件正文、普通工具结果、human/inbox 内部请求不作为新登记授权。Dashboard 使用持久 composer 身份；CLI 使用原会话分支中的用户消息条目 ID 与接收时间，不从压缩后的合成 user 摘要签发授权；内部 Run 使用原 Run 身份，恢复时取原 checkpoint prompt。人类问答及排队消息的持续授权接入仍待验收，不从拼接文本推断。
+工具 `manage_personal_context` 支持 `query/save/update/forget/follow/unfollow`，模型不能传入数据根、消息身份、权限或敏感许可。保存/更新需要完整 `context`，纠正与删除需要当前 `id/revision`；`query` 可按已知 `id` 读取。宿主从当前原始用户消息取得 quote、消息 ID 和接收时间，替换模型的 observedAt；Dashboard 附件正文、普通工具结果、human/inbox 内部请求不作为新登记授权。Dashboard 使用持久 composer 身份；CLI 使用原会话分支中的用户消息条目 ID 与接收时间，不从压缩后的合成 user 摘要签发授权；内部 Run 使用原 Run 身份，恢复时取原 checkpoint prompt。人类问答及排队消息的持续授权接入仍待验收，不从拼接文本推断。
+
+`follow` 需要当前相关用户请求、已查询记录的 `id/revision`，仅把该记录关联到宿主当前 Task/Run；有长期目标的事项还必须指定已存在的 `programId`。宿主核对真实 Task、当前 Run、范围、处理开关和记录版本，不接受模型指定目标工作区或其他 Task。`unfollow` 解除当前轮关联。关联不新建目标、来源监控或外部动作许可。
+
+情境变更与接收者 ID 同快照提交。既有 WatchSupervisor 的便宜轮询按目标 Task 投递 `personal_context.changed`，只携带记录 ID、版本、原因及代次，Inbox 持久接收后确认该接收者；中断后用相同消息 ID 重放。多接收者分别确认，无接收者的旧事件可清理。暂停/等待决策沿用既有路由，完成、归档或换 Run 不接受旧轮通知；新 Run 需重新关联，不自动迁移工作授权。关闭/撤权后的通知在 Main 启动前和消费时再次拒绝；后续新版本使旧版本通知失效。删除通知只用于撤销旧事实，不恢复正文或授权。
+
+无新用户来源的恢复只能查询和投影该 Task/Run 先前关联且仍获准的记录，不据此保存新事实；查询/投影沿用 20 条及 9000 字符预算，注明截断。旧查询在版本或许可变化后失效。开关或删除提升全局 generation，旧关联不能自动重新取得读取资格，需要新的正常用户请求重新关联。这是保守的撤权边界，完整人类回答/持续授权及跨 Run 交接仍待后续实现。
 
 `temporary_state` 只表示本人的临时状态，状态值为 `active/ended`，必须有 `validUntil` 或 `reviewAt`，禁止 `startsAt/endsAt/timeZone`；计划、待办意向或“晚上询问是否参加”用 `arrangement`，不确定事项用 `tentative`。安排日期、时刻未知时可留在正文，不为通过校验补造时间戳。工具参数说明与校验错误同时给出这些条件。
 
@@ -62,14 +68,14 @@
 
 [领域](../src/domain/personal-context.ts)、[存储](../src/runtime/personal-context-store.ts)、[内部服务](../src/runtime/personal-context-service.ts)已实现，回归入口为 [personal-context tests](../test/personal-context.test.js)。本机用户情境库与既有稳定记忆共存，不替换现有跨对话记忆或目标交接。
 
-| 内部操作                                   | 当前行为                                                                                                                                                                                    |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PersonalContextService.openRequest(host)` | 宿主提供真实消息身份、原文、接收时间、用途、操作身份和权限。按工作区根、Task、原消息 ID 持久记录 generation；更换 Run 或重启不把旧消息当新授权。所有这些参数都不能直接绑定模型输入          |
-| `save/update`                              | 严格参数校验；调用必须显式提供的宿主 `assess` 判定自述/不确定/假设/第三方、敏感性与保存授权。引用匹配只是附加校验，不是语义授权证明。记录当前版本和无正文事件一起提交；不调用模型或创建目标 |
-| `query(ids)`                               | 最多 20 个明确 ID，按当前启用状态、请求代次、用途、敏感许可和 task/project/user 范围过滤；返回记录及 validity。尚无自然语言搜索或自动请求注入                                               |
-| `configure/forget`                         | 设置变更或删除抬升 generation；阻断旧请求写入及旧许可。删除移除正文与相关旧事件，清空正文参数摘要收据，保留不含正文的请求身份屏障；已知 ID/版本可在使用关闭或记录许可到期后明确删除         |
-| `prepareExecution/validateExecution`       | 只有宿主提供实时 `canExecute` 检查时才签发进程内不透明许可；复核 epoch/generation、整个快照版本、记录 revision 及当前有效性。复制、伪造或跨请求/重启复用许可均拒绝；恢复后必须重新申请      |
-| `pendingChanges/acknowledgeChange`         | 只保存和确认无正文事件；关闭使用时不提供待投递列表，确认需匹配当前 epoch/generation，重复确认不改变事实。尚无消费者写 Inbox，也无自动唤醒                                                   |
+| 内部操作                                   | 当前行为                                                                                                                                                                                                                   |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PersonalContextService.openRequest(host)` | 宿主提供真实消息身份、原文、接收时间、用途、操作身份和权限。按工作区根、Task、原消息 ID 持久记录 generation；更换 Run 或重启不把旧消息当新授权。所有这些参数都不能直接绑定模型输入                                         |
+| `save/update`                              | 严格参数校验；调用必须显式提供的宿主 `assess` 判定自述/不确定/假设/第三方、敏感性与保存授权。引用匹配只是附加校验，不是语义授权证明。记录当前版本和无正文事件一起提交；不调用模型或创建目标                                |
+| `query(ids)`                               | 最多 20 个明确 ID，按当前启用状态、请求代次、用途、敏感许可和 task/project/user 范围过滤；返回记录及 validity。尚无自然语言搜索或自动请求注入                                                                              |
+| `configure/forget`                         | 设置变更或删除抬升 generation；阻断旧请求写入及旧许可。删除移除正文与相关旧事件，清空正文参数摘要收据，保留不含正文的请求身份屏障；已知 ID/版本可在使用关闭或记录许可到期后明确删除                                        |
+| `prepareExecution/validateExecution`       | 只有宿主提供实时 `canExecute` 检查时才签发进程内不透明许可；复核 epoch/generation、整个快照版本、记录 revision 及当前有效性。复制、伪造或跨请求/重启复用许可均拒绝；恢复后必须重新申请                                     |
+| `pendingChanges/acknowledgeChange`         | 只保存和确认无正文事件；关闭使用时不提供待投递列表，确认需匹配当前 epoch/generation，重复确认不改变事实。生产投递由独立 PersonalContextDelivery 通过既有轮询写 Inbox，再按接收者确认；该底层批量确认接口不作为生产投递入口 |
 
 当前 schema 限定 200 条记录、256 个待确认事件、512 个操作收据、1024 条消息身份屏障，快照最多 2 MiB；正文每条 2000 字符、来源引用 1000 字符、标题 200 字符。达到上限报 `capacity`，不静默清理事件或重放屏障，也没有自动整理/清理入口。接入长期运行前需提供可恢复的容量维护方案，不能靠清空屏障绕过上限。错误码包括 `conflict`、`permission_denied`、`source_rejected`、`assessment_invalid`（聊天语义检查失败）、`request_not_relevant`（未识别为个人规划或概览查询）、`invalid_request`、`write_attempts_exhausted`、`not_found`、`inactive`、`capacity`、`storage_invalid`；结构错误由 schema 拒绝，聊天入口映射为不携带来源全文的诊断。
 
@@ -134,7 +140,7 @@
 
 ## 存储、一致性与恢复
 
-规划路径为 `<ATRIA_HOME>/personal-context/context.json`，由宿主 [数据路径](task-workspace-layout.md) 解析。它与稳定记忆及 Task 分开，所有入口对同一数据根复用存储；测试使用自己的 mkdtemp。版本 1 快照包含：存储 `epoch`、撤权/删除屏障 `generation`、每次情境变更递增的 `snapshotRevision`、处理设置及版本、当前记录、非正文幂等收据、待投递事件和投递状态。数据目录不纳入 Git 或发行包。
+规划路径为 `<ATRIA_HOME>/personal-context/context.json`，由宿主 [数据路径](task-workspace-layout.md) 解析。它与稳定记忆及 Task 分开，所有入口对同一数据根复用存储；测试使用自己的 mkdtemp。版本 2 快照兼容读取版本 1，并增加 links 和事件 targets；其余包含：存储 `epoch`、撤权/删除屏障 `generation`、每次情境变更递增的 `snapshotRevision`、处理设置及版本、当前记录、非正文幂等收据、待投递事件和投递状态。数据目录不纳入 Git 或发行包。
 
 每次写操作：入口验证 → 在锁外完成候选提取 → 取短文件锁 → 重新读取并严格验证快照 → 校验 generation/授权/记录版本 → 同快照写当前状态和投递意图 → 同目录临时文件 flush/sync → 用 [replaceFile](../src/storage/replace-file.ts) 原子替换。锁内不运行模型、外部网络或 Inbox 写入。遵循已有有限 Windows 占用重试，不先删除旧文件；原子替换不等于断电后的完整事务保证。
 
@@ -191,4 +197,4 @@ Pi 的 `tool_call` hook 可作为受控工具的前置检查入口；PiSession �
 
 本批走查已将删除后迟到创建、无关任务泄露、新增事实漏检、关闭后重放、多个工作区同名 Task、投递收据间崩溃、通用工具无法事务撤权纳入合同。没有把 M2 的跨事项推理或外部动作能力提前标为交付。上限具体值及接口错误码在 M1-03 的失败测试中冻结；真实来源、外部渠道、实际账号与持续敏感处理范围仍由对应阶段确定，不影响隔离合成资料开发。
 
-M1-03/04 已落地领域 schema、快照存储及来源/版本/许可服务；M1-05 已完成可从聊天体验的保存、跨任务当前版本读取、纠正/取消/删除和设置管理。后续补齐人类回答/内部恢复授权、容量维护、事项引用与 Inbox，再完成 M1-06 的压缩恢复、并发变更和实际模型验收。进度与验证证据在[路线图](personal-assistant-roadmap.md)维护，新增接口见 [Product API](product-api.md#personal-context)。
+M1-03/04 已落地领域 schema、快照存储及来源/版本/许可服务；M1-05 已完成可从聊天体验的保存、跨任务当前版本读取、纠正/取消/删除和设置管理。显式事项引用、Inbox 与限定范围只读恢复已接入；后续补齐人类回答/持续授权和容量维护，再完成 M1-06 的压缩恢复、并发变更和实际模型验收。进度与验证证据在[路线图](personal-assistant-roadmap.md)维护，新增接口见 [Product API](product-api.md#personal-context)。

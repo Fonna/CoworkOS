@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import {
   contextBasisSchema,
+  appendContextChange,
   contextSettingsSchema,
   contextValidity,
   PersonalContextError
@@ -83,7 +84,7 @@ export class PersonalContextManagement {
           record.revision++;
           record.updatedAt = new Date().toISOString();
         }
-        doc.events.push({
+        appendContextChange(doc, {
           eventId: randomUUID(),
           contextId: record.id,
           revision: change.action === "forget" ? record.revision + 1 : record.revision,

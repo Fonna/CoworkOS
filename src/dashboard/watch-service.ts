@@ -3,6 +3,7 @@ import { WatchSupervisor, type WatchSupervisorOptions } from "../runtime/watch-s
 import { MainSupervisor, SUPERVISOR_WAKE_TURN } from "../runtime/main-supervisor.js";
 import { LocalWorkspaceStore } from "../workspace/workspace-store.js";
 import { now } from "../domain/types.js";
+import { PersonalContextDelivery } from "../runtime/personal-context-delivery.js";
 
 /** One host-owned scheduler covers every known workspace and uses the Dashboard's Main launcher. */
 export function createWatchService(ports: {
@@ -44,6 +45,7 @@ export function createWatchService(ports: {
     for (const root of await ports.knownWorkspaceRoots()) {
       if (stopped) break;
       const supervisor = new WatchSupervisor({
+        personalContext: new PersonalContextDelivery(),
         ...ports.runtimeOptions?.(),
         workspaceRoot: root,
         baseUrl: ports.runtimeValue("COWORK_API_BASE") ?? "",

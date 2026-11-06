@@ -5,6 +5,7 @@ export const PERSONAL_CONTEXT_LIMITS = {
   events: 256,
   receipts: 512,
   requests: 1024,
+  links: 400,
   bytes: 2_097_152
 };
 export type PersonalContextErrorCode =
@@ -157,7 +158,8 @@ export const contextEventSchema = z
     reason: z.enum(["created", "updated", "deleted"]),
     createdAt: timestamp,
     epoch: z.string().uuid(),
-    generation: version
+    generation: version,
+    targets: z.array(z.string().uuid()).max(PERSONAL_CONTEXT_LIMITS.links)
   })
   .strict();
 export const contextReceiptSchema = z
@@ -171,11 +173,29 @@ export const contextReceiptSchema = z
   .strict();
 export const contextDocumentSchema = z
   .object({
-    version: z.literal(1),
+    version: z.literal(2),
     epoch: z.string().uuid(),
     generation: version,
     snapshotRevision: version,
     settings: contextSettingsSchema,
+    links: z
+      .array(
+        z
+          .object({
+            linkId: z.string().uuid(),
+            contextId: z.string().uuid(),
+            revision: version,
+            workspaceRoot: identity,
+            taskId: identity,
+            runId: identity,
+            programId: identity.optional(),
+            projectDirectory: identity.optional(),
+            epoch: z.string().uuid(),
+            generation: version
+          })
+          .strict()
+      )
+      .max(PERSONAL_CONTEXT_LIMITS.links),
     records: z.array(contextRecordSchema).max(PERSONAL_CONTEXT_LIMITS.records),
     events: z.array(contextEventSchema).max(PERSONAL_CONTEXT_LIMITS.events),
     receipts: z.array(contextReceiptSchema).max(PERSONAL_CONTEXT_LIMITS.receipts),
@@ -189,12 +209,31 @@ export const contextDocumentSchema = z
       doc.records.map((r) => r.id),
       doc.events.map((e) => e.eventId),
       doc.receipts.map((r) => r.key),
-      doc.requests.map((r) => r.key)
+      doc.requests.map((r) => r.key),
+      doc.links.map((r) => r.linkId)
     ])
       if (new Set(keys).size !== keys.length)
         ctx.addIssue({ code: "custom", message: "Duplicate context identity" });
   });
 export type ContextDocument = z.infer<typeof contextDocumentSchema>;
+/** Fact and recipient intent share the same atomic snapshot; events carry no private body. */
+export function appendContextChange(
+  doc: ContextDocument,
+  event: Omit<z.input<typeof contextEventSchema>, "targets">
+): void {
+  doc.events.push({
+    ...event,
+    targets: doc.links
+      .filter(
+        (link) =>
+          link.contextId === event.contextId &&
+          link.epoch === doc.epoch &&
+          (link.generation === doc.generation ||
+            (event.reason === "deleted" && link.generation === doc.generation - 1))
+      )
+      .map((link) => link.linkId)
+  });
+}
 export type ContextValidity = "current" | "inactive" | "expired" | "not_yet_valid" | "needs_review";
 export function contextValidity(record: ContextRecord, now: number): ContextValidity {
   if (["cancelled", "ended"].includes(record.status)) return "inactive";

@@ -28,7 +28,18 @@ export class PersonalContextStore {
         throw new PersonalContextError("storage_invalid");
       const raw = await handle.readFile("utf8");
       try {
-        return contextDocumentSchema.parse(JSON.parse(raw));
+        const value = JSON.parse(raw);
+        // Additive v1 -> v2 migration: legacy events have no recipients. Do not
+        // invent subscriptions or discard request/revocation barriers.
+        if (value?.version === 1) {
+          if ("links" in value || !Array.isArray(value.events)) throw new Error();
+          const events = value.events.map((event: Record<string, unknown>) => {
+            if (!event || typeof event !== "object" || "targets" in event) throw new Error();
+            return { ...event, targets: [] };
+          });
+          return contextDocumentSchema.parse({ ...value, version: 2, links: [], events });
+        }
+        return contextDocumentSchema.parse(value);
       } catch {
         throw new PersonalContextError("storage_invalid");
       }
@@ -42,6 +53,11 @@ export class PersonalContextStore {
 
   async read(): Promise<ContextDocument> {
     return (await this.load()) ?? this.transaction((doc) => structuredClone(doc));
+  }
+
+  /** Background discovery must not create a personal data file for unrelated Tasks. */
+  async readExisting(): Promise<ContextDocument | undefined> {
+    return this.load();
   }
 
   /** Under our lock, only this module's UUID-named abandoned files can be removed. */
@@ -61,11 +77,12 @@ export class PersonalContextStore {
       this.path,
       async () => {
         const doc = (await this.load()) ?? {
-          version: 1 as const,
+          version: 2 as const,
           epoch: randomUUID(),
           generation: 0,
           snapshotRevision: 0,
           settings: { enabled: false, registrationEnabled: false, sensitiveEnabled: false },
+          links: [],
           records: [],
           events: [],
           receipts: [],
@@ -76,7 +93,8 @@ export class PersonalContextStore {
           doc.records.length > PERSONAL_CONTEXT_LIMITS.records ||
           doc.events.length > PERSONAL_CONTEXT_LIMITS.events ||
           doc.receipts.length > PERSONAL_CONTEXT_LIMITS.receipts ||
-          doc.requests.length > PERSONAL_CONTEXT_LIMITS.requests
+          doc.requests.length > PERSONAL_CONTEXT_LIMITS.requests ||
+          doc.links.length > PERSONAL_CONTEXT_LIMITS.links
         )
           throw new PersonalContextError("capacity");
         const raw = `${JSON.stringify(contextDocumentSchema.parse(doc))}\n`;

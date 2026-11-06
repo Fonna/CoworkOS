@@ -21,6 +21,7 @@ import { ScriptWatcher } from "./script-watcher.js";
 import { WatcherRuntime, type WatcherPoller } from "./watcher.js";
 import { WatchProgramStore } from "./watch-program-store.js";
 import { GoalSupervisor } from "./goal-supervisor.js";
+import type { PersonalContextDelivery } from "./personal-context-delivery.js";
 import { taskClockPaused } from "./goal-routing.js";
 import { backgroundMonitoringPaused, monitoringPrograms, monitorWakePaused } from "./monitoring-control.js";
 import { VirtualAgentStore } from "./virtual-agent-store.js";
@@ -35,6 +36,8 @@ import {
 } from "./runtime-settings.js";
 
 export interface WatchSupervisorOptions {
+  /** Host-owned capability. Omission keeps independent runtime users isolated from personal data. */
+  personalContext?: PersonalContextDelivery;
   visionModel?: VisionModelConfig;
   workspaceRoot: string;
   signal?: AbortSignal;
@@ -160,6 +163,22 @@ export class WatchSupervisor {
               return;
             const mainRunId = await this.resolveMainRunId(task.taskId);
             if (filter.phase === "poll") {
+              try {
+                await this.options.personalContext?.runTask({
+                  workspaceRoot: this.options.workspaceRoot,
+                  taskId: task.taskId,
+                  runId: mainRunId
+                });
+              } catch (error) {
+                // A failed context lane must remain visible without stopping
+                // unrelated sources, goal clocks or scheduled wakes.
+                result.failures.push({
+                  programId: "personal-context",
+                  monitorId: task.taskId,
+                  stage: "poll",
+                  error: error instanceof Error ? error.message : String(error)
+                });
+              }
               await new GoalSupervisor(this.options.workspaceRoot).runTask(task.taskId, mainRunId);
               await this.processPark(task.taskId, result);
             }

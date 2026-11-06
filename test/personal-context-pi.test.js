@@ -11,6 +11,7 @@ import { mainInputPath, saveMainInput } from "../dist/src/runtime/main-continuat
 import { PersonalContextStore } from "../dist/src/runtime/personal-context-store.js";
 import { PersonalContextManagement } from "../dist/src/runtime/personal-context-management.js";
 import { RunService } from "../dist/src/runtime/run-service.js";
+import { LocalWorkspaceStore } from "../dist/src/workspace/workspace-store.js";
 import { modelProtocolFixture } from "./model-protocol-fixture.mjs";
 
 const quote = "请把我的上海出差安排保存为跨对话个人情境";
@@ -224,7 +225,11 @@ test(
     let record = (await store.read()).records[0];
     assert.ok(record, "real registered tool writes the actual store");
     assert.equal(state.assessments, 3, "invalid, denied and accepted checks each make one request");
-    const overview = await run("b", "最近我有什么事", { action: "query" });
+    const overview = await run("b", "最近我有什么事，继续规划相关安排", [
+      { action: "query" },
+      { action: "follow", id: record.id, revision: record.revision }
+    ]);
+    assert.ok((await store.read()).links.some((link) => link.taskId === "b" && link.contextId === record.id));
     assert.match(system(overview), /TRIP_CONFIRMED_FIXTURE/);
     const overviewTools = JSON.stringify(overview.messages.filter((message) => message.role === "tool"));
     assert.match(overviewTools, /TRIP_CONFIRMED_FIXTURE/);
@@ -315,7 +320,15 @@ test(
     assert.match(JSON.stringify(corrected.messages), /invalid_request/);
     assert.match(JSON.stringify(corrected.messages), /reminderScheduled/);
     assert.equal((await store.read()).records.length, 1);
-    const overview = await run("b", "最近我有什么事", { action: "query" });
+    const workspace = new LocalWorkspaceStore(join(root, "workspace"));
+    await workspace.createTask("b");
+    await workspace.updateTask("b", { activeRunId: "run-b", status: "running" });
+    const record = (await store.read()).records[0];
+    const overview = await run("b", "最近我有什么事，继续规划相关安排", [
+      { action: "query" },
+      { action: "follow", id: record.id, revision: record.revision }
+    ]);
+    assert.ok((await store.read()).links.some((link) => link.taskId === "b" && link.contextId === record.id));
     assert.match(system(overview), /TRIP_CONFIRMED_FIXTURE/);
     const overviewTools = JSON.stringify(overview.messages.filter((message) => message.role === "tool"));
     assert.match(overviewTools, /TRIP_CONFIRMED_FIXTURE/);

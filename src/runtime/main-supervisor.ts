@@ -11,6 +11,8 @@ import { WatchProgramStore } from "./watch-program-store.js";
 import { routeGoalMessage, discardGoalMessage } from "./goal-routing.js";
 import { mainIsAlive, readHeartbeat } from "./main-heartbeat.js";
 import { monitoringPrograms } from "./monitoring-control.js";
+import { PersonalContextDelivery } from "./personal-context-delivery.js";
+import type { PersonalContextStore } from "./personal-context-store.js";
 
 /**
  * Restarts a Main that stopped while work was still addressed to it.
@@ -29,6 +31,7 @@ import { monitoringPrograms } from "./monitoring-control.js";
  */
 
 export interface MainSupervisorOptions {
+  personalContextStore?: PersonalContextStore;
   workspaceRoot: string;
   /** Command used to start a Main for one Task. */
   launch: (input: { taskId: string; runId: string }) => Promise<void> | void;
@@ -133,6 +136,16 @@ export class MainSupervisor {
     const pending = [];
     let held = false;
     for (const message of (await inbox.list("main")).filter((entry) => entry.state !== "consumed")) {
+      if (
+        (message.payload as { type?: string } | undefined)?.type === "personal_context.changed" &&
+        !(await new PersonalContextDelivery(this.options.personalContextStore).accepts(
+          { workspaceRoot: this.options.workspaceRoot, taskId, runId },
+          message.payload
+        ))
+      ) {
+        await discardGoalMessage(inbox, message);
+        continue;
+      }
       const route = routeGoalMessage(programsForRouting, task.monitoring?.scope === "background", message);
       if (route === "discard") await discardGoalMessage(inbox, message);
       else if (route === "hold") held = true;

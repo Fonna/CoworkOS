@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { z } from "zod";
 import {
   contextInputSchema,
+  appendContextChange,
   contextSettingsSchema,
   contextValidity,
   PersonalContextError,
@@ -187,7 +188,7 @@ export class PersonalContextRequest {
     record: { id: string; revision: number },
     reason: "created" | "updated" | "deleted"
   ): void {
-    doc.events.push({
+    appendContextChange(doc, {
       eventId: randomUUID(),
       contextId: record.id,
       revision: record.revision,
