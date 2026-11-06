@@ -12,6 +12,8 @@
 
 独立语义检查的 JSON 展示格式兼容与拒绝边界由[校验响应回归](../test/personal-context-assessment.test.js)覆盖，真实 Pi 回归同时检查带代码块的许可/拒绝及无效响应零落盘。
 
+人工回答由 [Pi 来源选择](../.pi/runtime/personal-context-source.ts)识别候选，[可信回答适配](../src/runtime/personal-context-answer.ts)从持久 HumanRequest 核对原文与 Task/Run，复用宿主服务的消息代次屏障；聊天适配在语义核验后复查归属。[回答回归](../test/personal-context-answer.test.js)覆盖真实 CLI askhuman、独立 Pi 语义核验、回答重放、撤权和换轮，问题及信封正文不能签发保存依据。完整持续授权仍见路线图。
+
 个人事项概览与具体规划共用聊天适配的相关性规则；“最近我有什么事”应能跨对话查询，未识别的请求使用独立诊断。聊天边界、两条 Pi 路径与浏览器闭环同时覆盖此行为，读取仍受使用、敏感处理和范围约束。
 
 情境类型的跨字段约束由领域 schema 负责；聊天适配提供纠错预算、来源空白匹配及保存不等于定时提醒的结果，工具字段说明与运行时校验保持一致。聊天、真实 Pi 和浏览器回归覆盖错误类型纠正后实际落盘。

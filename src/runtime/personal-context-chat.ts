@@ -3,6 +3,7 @@ import { z } from "zod";
 import { contentText } from "@earendil-works/pi-ai";
 import {
   contextInputSchema,
+  contextBasisSchema,
   contextValidity,
   PersonalContextError,
   type ContextDocument,
@@ -10,6 +11,7 @@ import {
 } from "../domain/personal-context.js";
 import { PersonalContextStore } from "./personal-context-store.js";
 import { PersonalContextDelivery } from "./personal-context-delivery.js";
+import { personalContextAnswer } from "./personal-context-answer.js";
 import { PersonalContextService, type ContextAssessment } from "./personal-context-service.js";
 import { PiSession } from "./pi-session.js";
 import type { MemoryLearningConnection } from "./user-memory-learning.js";
@@ -17,12 +19,16 @@ import type { RuntimeTool } from "./tool.js";
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
 
 export interface ContextChatSource {
+  basis?: { epoch: string; generation: number };
+  kind?: "human_answer";
   messageId: string;
   receivedAt: string;
   text: string;
 }
 const sourceSchema = z
   .object({
+    basis: contextBasisSchema.optional(),
+    kind: z.literal("human_answer").optional(),
     messageId: z.string().min(1).max(500),
     receivedAt: z.string().datetime({ offset: true }),
     text: z.string().min(1).max(6000)
@@ -221,18 +227,30 @@ export class PersonalContextChat {
     };
   }
   setSource(source: ContextChatSource | undefined): void {
+    source = source ? sourceSchema.parse(structuredClone(source)) : undefined;
     if (JSON.stringify(this.source) === JSON.stringify(source)) return;
     this.sequence++;
     this.requests.clear();
     this.invalidWrites = 0;
     this.writesBlocked = false;
-    this.basis = undefined;
-    this.source = source ? sourceSchema.parse(structuredClone(source)) : undefined;
+    this.basis = source?.basis;
+    this.source = source;
+  }
+  private async requireCurrentSource(source: ContextChatSource): Promise<void> {
+    if (source.kind !== "human_answer") return;
+    const current = await personalContextAnswer(
+      this.options,
+      source.messageId.slice("human:".length),
+      this.store
+    );
+    if (!current || JSON.stringify(sourceSchema.parse(current)) !== JSON.stringify(source))
+      throw new PersonalContextError("conflict");
   }
   private now() {
     return (this.options.now ?? Date.now)();
   }
   private async visible() {
+    if (this.source) await this.requireCurrentSource(this.source);
     const doc = await this.store.read();
     if (this.basis && (this.basis.epoch !== doc.epoch || this.basis.generation !== doc.generation))
       throw new PersonalContextError("conflict");
@@ -339,7 +357,7 @@ export class PersonalContextChat {
     if (!quote) throw new PersonalContextError("source_rejected");
     if (request.context) request.context = { ...request.context, quote };
     if (
-      !doc.settings.registrationEnabled &&
+      (!doc.settings.registrationEnabled || source.kind === "human_answer") &&
       !/(?:记住|保存|记录|登记|更新|改期|取消|删除|忘掉|结束|\b(?:remember|save|record|update|reschedule|cancel|forget|delete|end)\b)/i.test(
         source.text
       )
@@ -374,12 +392,13 @@ export class PersonalContextChat {
             receivedAt: source.receivedAt,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             proposed,
-            registrationEnabled: doc.settings.registrationEnabled
+            registrationEnabled: source.kind === "human_answer" ? false : doc.settings.registrationEnabled
           },
           signal
         )
       );
       signal?.throwIfAborted();
+      await this.requireCurrentSource(source);
       if (this.sequence !== sequence) throw new PersonalContextError("conflict");
       return result;
     };
@@ -387,7 +406,9 @@ export class PersonalContextChat {
     const service = new PersonalContextService(this.store, { now: this.options.now, assess: assessment });
     if (!opened) {
       opened = service.openRequest({
-        ...source,
+        messageId: source.messageId,
+        receivedAt: source.receivedAt,
+        text: source.text,
         projectDirectory: this.options.projectDirectory,
         workspaceRoot: this.options.workspaceRoot,
         taskId: this.options.taskId,

@@ -155,6 +155,8 @@ Task 初始化会创建 `agents/main/work/`，在 Main 首次模型请求前即�
 
 `runs/<runId>/main-input.json` 以版本 1 保存 Main 启动前接受的完整输入及 `submittedAt`（毫秒时间戳），新记录另保存主动来源 `source`、`messageId`/Task/Run 身份、原始 composer `body` 和附件引用，权限为 600。无新消息的续执行沿用这条记录；启动失败后仅补回 Pi 历史中尚未保存的原始输入。旧 Run 没有这个文件时仍可从已有 Pi 会话恢复。该记录包含原始请求和附件引用/内容，应与会话工作区一起备份。
 
+个人情境的可信人工回答直接核对 `human/requests/<requestId>.json` 的已回答状态、原 Task/Run、answer 和 answeredAt，使用 `human:<requestId>` 作为消息身份；不从 `source=human` 的拼接 prompt 提取权限。情境已有 requests 屏障在首次观察时固定该身份的代次，重放不重置；回答文件格式不变。没有既有情境库时，观察普通人工回答不会创建情境文件。跨 Run 交接和答复时刻即绑定代次尚未接入。
+
 `sessions/main/user-inputs/<messageId>.json` 另外持久保存主动提交的原始 body、附件与稳定消息身份，避免同一 Run 的后续内部输入覆盖可编辑来源。启动未接受的输入会标记为拒绝，不作为最新可编辑消息。
 
 `runs/<runId>/goal-delegation-request.json` 以版本 1 保存已交给模型的当前用户请求身份和旧归属的兼容边界，权限 600。身份取自持久 Pi 用户消息或已交付的用户 Inbox 消息，不使用每次 HTTP 调用都会变化的模型 `requestId`。新的用户消息可以推进边界；模型轮次、压缩、后台事件及无新消息的续执行不能解除原请求的交接限制。

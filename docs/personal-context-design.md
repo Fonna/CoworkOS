@@ -34,7 +34,9 @@
 
 启动开发项目后，在“设置 → 情境与安排 → 使用情境与安排”开启使用。在对话 A 明确说“请把我的上海出差保存为跨对话个人情境：2027 年 6 月 10 日 9 点至 12 日 18 点，上海时间，行程已确认”，再在新对话 B 说“帮我安排上海出差期间的会议”；相关模型请求会获得当前版本。示例是合成资料，不代表用户的真实行程。改期、取消或遗忘可在聊天明确提出；设置页可查看全部记录、标记取消/结束、删除，也可在使用关闭时管理。
 
-工具 `manage_personal_context` 支持 `query/save/update/forget/follow/unfollow`，模型不能传入数据根、消息身份、权限或敏感许可。保存/更新需要完整 `context`，纠正与删除需要当前 `id/revision`；`query` 可按已知 `id` 读取。宿主从当前原始用户消息取得 quote、消息 ID 和接收时间，替换模型的 observedAt；Dashboard 附件正文、普通工具结果、human/inbox 内部请求不作为新登记授权。Dashboard 使用持久 composer 身份；CLI 使用原会话分支中的用户消息条目 ID 与接收时间，不从压缩后的合成 user 摘要签发授权；内部 Run 使用原 Run 身份，恢复时取原 checkpoint prompt。人类问答及排队消息的持续授权接入仍待验收，不从拼接文本推断。
+工具 `manage_personal_context` 支持 `query/save/update/forget/follow/unfollow`，模型不能传入数据根、消息身份、权限或敏感许可。保存/更新需要完整 `context`，纠正与删除需要当前 `id/revision`；`query` 可按已知 `id` 读取。宿主从当前原始用户消息取得 quote、消息 ID 和接收时间，替换模型的 observedAt；Dashboard 附件正文、普通工具结果及未经核验的 human/inbox 内部请求不作为新登记授权。Dashboard 使用持久 composer 身份；CLI 使用原会话分支中的用户消息条目 ID 与接收时间，不从压缩后的合成 user 摘要签发授权；内部 Run 使用原 Run 身份，恢复时取原 checkpoint prompt。
+
+Pi 扩展遇到 `askhuman` 的已回答结果或 `cowork-human-answer` 时，只取 requestId，由[可信回答适配](../src/runtime/personal-context-answer.ts)核对持久 HumanRequest 的已回答状态、原 Task/Run 与当前所有权。只有用户实际回答正文、`human:<requestId>` 身份及 answeredAt 进入情境来源；信封里的 answer、模型问题、推荐选项及拼接的续行 prompt 均不是依据。人工回答即使开启“从对话登记”，也要求正文独立明确提出保存/更新/删除，并继续经过独立语义核验。“同意”、超时或取消不能借用旧用户请求；语义核验返回后再次检查 Run 归属，已结束或换轮不落盘。首次观察到回答时使用既有 requests 屏障固定代次，后续适配器和进程重放不续期；尚未观察的回答没有答复时刻的代次凭证。纯 `source=human` 拼接输入尚不签发来源，跨 Run、排队消息、强制压缩后的完整持续授权仍待验收；不从文本反推身份。
 
 `follow` 需要当前相关用户请求、已查询记录的 `id/revision`，仅把该记录关联到宿主当前 Task/Run；有长期目标的事项还必须指定已存在的 `programId`。宿主核对真实 Task、当前 Run、范围、处理开关和记录版本，不接受模型指定目标工作区或其他 Task。`unfollow` 解除当前轮关联。关联不新建目标、来源监控或外部动作许可。
 

@@ -6,6 +6,8 @@ CoworkOS 是本机单用户 harness，CLI、Web 和 Electron App 共用运行时
 
 M1 [个人情境](personal-context-design.md)由独立领域规则、短锁快照存储、来源/范围/用途与版本服务组成。[共享聊天适配层](../src/runtime/personal-context-chat.ts)连接两条 Pi 请求路径，提供 `manage_personal_context`、独立语义判断、有界当前投影和旧查询失效；[设置管理](../src/runtime/personal-context-management.ts)通过同一本地 HTTP 边界提供开关、查看、取消/结束与删除。它与稳定记忆分开，默认关闭；不创建目标或外部动作。[关联与投递服务](../src/runtime/personal-context-delivery.ts)保存显式 Task/Run 依赖及同快照接收者，既有 WatchSupervisor 轮询将无正文变更写入 Inbox；MainSupervisor 启动前及 MainInboxDelivery 消费时核验代次、归属和当前版本。无新用户来源的恢复仅能读取已关联事实，不能授予新写入或外部动作权限。全工具执行检查、持续授权的完整接入及完整 M1 验收仍待完成。
 
+Pi 的人工回答由[可信回答适配](../src/runtime/personal-context-answer.ts)读取持久 HumanRequest，只使用用户实际填写的正文，并核对原 Task/Run 和当前所有权。问题、推荐选项和普通工具正文不能授权保存；已观察回答复用消息代次屏障，语义核验后再查归属。跨 Run 与尚未观察回答的完整持续授权仍待接入。
+
 ## 装配与依赖方向
 
 ```text

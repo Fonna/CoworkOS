@@ -67,6 +67,25 @@ function requireBasis(doc: ContextDocument, basis: ContextBasis): void {
     throw new PersonalContextError("conflict");
 }
 
+/** Pin a trusted source on first observation; retries never renew its generation. */
+export async function personalContextSourceBasis(
+  store: PersonalContextStore,
+  host: Pick<ContextHostRequest, "workspaceRoot" | "taskId" | "messageId">
+): Promise<ContextBasis> {
+  const key = hash([resolve(host.workspaceRoot), host.taskId, host.messageId]);
+  const existing = await store.readExisting();
+  const stamp = existing?.requests.find((request) => request.key === key);
+  if (stamp) return { epoch: existing!.epoch, generation: stamp.generation };
+  return store.transaction((doc) => {
+    let request = doc.requests.find((request) => request.key === key);
+    if (!request) {
+      request = { key, generation: doc.generation };
+      doc.requests.push(request);
+    }
+    return { epoch: doc.epoch, generation: request.generation };
+  });
+}
+
 /** Internal host API, not a model-facing tool or a natural-language authorization classifier. */
 export class PersonalContextService {
   constructor(
@@ -78,15 +97,7 @@ export class PersonalContextService {
     const host = hostRequestSchema.parse(structuredClone(input));
     host.workspaceRoot = resolve(host.workspaceRoot);
     if (host.projectDirectory) host.projectDirectory = resolve(host.projectDirectory);
-    const basis = await this.store.transaction((doc) => {
-      const key = hash([host.workspaceRoot, host.taskId, host.messageId]);
-      let stamp = doc.requests.find((request) => request.key === key);
-      if (!stamp) {
-        stamp = { key, generation: doc.generation };
-        doc.requests.push(stamp);
-      }
-      return { epoch: doc.epoch, generation: stamp.generation };
-    });
+    const basis = await personalContextSourceBasis(this.store, host);
     return new PersonalContextRequest(this.store, host, basis, this.options);
   }
 

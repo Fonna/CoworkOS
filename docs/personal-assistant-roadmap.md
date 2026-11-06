@@ -252,7 +252,7 @@ M1 的首份实现设计应先回答：情境由谁保存；哪些主体可读�
 | 5 / M1-06       | 以 S1/S2/S9 完成跨 Task、强制压缩、并发更新、暂停和进程重启的端到端验收；分别记录确定性 Pi、浏览器及真实模型结果                                                | 登记一次，相关对话可用；无关任务无私密正文；纠正/取消立即失效，重启和旧结果不回滚。独立核对持久记录与模型请求。真实模型对自述、假设、第三方、模糊指代与时间的失败单列，证据齐全才完成 M1 |
 | 6 / M2-01       | M1 过关后实现首个跨事项影响切片：三个已有事项中两个相关、一个无关，情境更新后为相关事项生成可审阅调整建议；复用目标、Inbox、暂停与恢复                          | S3/S4/S5/S10：只触达相关事项；基于已知区间判断冲突，缺结束时间或缓冲不声称无冲突。旧建议因版本变化失效；无相应动作授权不修改外部会议或预订                                               |
 
-按后续确认调整：优先 **M1-05b-D 事项关联与可靠投递**，再补 R 的持续授权和 C 的容量维护，最后进入 M1-06。T 收窄为时间字段表示/未知值校验，仅处理实际阻塞，不建设规则式自然语言时间解析器，也不作为主线前置。本批已接入 D 的显式 Task/Run 依赖、Inbox 和限定范围只读恢复；完整持续授权与跨 Run 交接不记为完成。容量维护依赖投递确认和恢复屏障的合同；若真实使用先触发容量阻塞，应先提供保留数据的诊断与管理恢复，再推进同一合同，不能临时清空去重信息。每批同步现行设计/API/数据布局中实际改变的部分，运行相关行为测试和 `npm run verify`；纯规划更新只运行文档与格式检查。
+按后续确认调整：优先 **M1-05b-D 事项关联与可靠投递**，再补 R 的持续授权和 C 的容量维护，最后进入 M1-06。T 收窄为时间字段表示/未知值校验，仅处理实际阻塞，不建设规则式自然语言时间解析器，也不作为主线前置。本批已接入 D 的显式 Task/Run 依赖、Inbox 和限定范围只读恢复；R 已接入同 Run 的可信人工回答，完整持续授权与跨 Run 交接不记为完成。容量维护依赖投递确认和恢复屏障的合同；若真实使用先触发容量阻塞，应先提供保留数据的诊断与管理恢复，再推进同一合同，不能临时清空去重信息。每批同步现行设计/API/数据布局中实际改变的部分，运行相关行为测试和 `npm run verify`；纯规划更新只运行文档与格式检查。
 
 M2 首个切片先完成应用内建议及必要反馈。明确的定时提醒请求须进入既有调度/等待机制并核验创建结果，不能将 `reviewAt` 当提醒；是否新增用户入口由场景缺口决定。M3 再选一个真实来源，M4 再扩展一个外部反馈渠道。Outlook 仅是候选，不默认为已选择或授权；插件化、全面 UI 重写、CAD/Blender 扩展不进入当前主线。
 
@@ -367,3 +367,25 @@ node --test --test-concurrency=1 test/personal-context.test.js test/personal-con
 结果 **187 通过、0 失败、0 跳过**，约 196 秒。随后将投递能力改为宿主显式注入，完成重新构建与 `npm run verify` 全部检查，再执行 `node --test --test-concurrency=1 test/personal-context-delivery.test.js`，新增 **12/12** 通过，无失败或跳过；包括真实 Pi 读取与内部写入拒绝、实际调度轮询和暂停恢复、损坏通道与独立时钟隔离。两条真实 Pi 的 follow 工具流程包含在上述 187 项中；模型均为隔离本地假服务。
 
 最终浏览器设置 `COWORK_TEST_BROWSER_CHANNEL=msedge` 后运行 `node node_modules/@playwright/test/cli.js test e2e/personal-context.spec.js --workers=1`，原有三条流程 **3/3** 通过，约 39 秒：登记纠错及不虚构提醒、跨对话读取/管理、运行中切换开关的冲突与零落盘。这是既有 UI 兼容回归，不能替代新关联功能的真实模型验收。最终轻量检查包含 CLI 构建、lint、两套类型、格式、文档链接（95 文件、3089 链接、0 错误）和源码卫生（1790 文件、0 发现）。本批未执行 `verify:full`、原生桌面/安装包、实际模型、外部来源或长期驻留验收。
+
+### 2026-11-06 开发批次：可信人工回答接入
+
+继续 M1-05b-R，先完成同 Run 的可信人工回答切片。[Pi 来源选择](../.pi/runtime/personal-context-source.ts)识别 askhuman 结果或人工回答 Inbox 消息，[回答适配](../src/runtime/personal-context-answer.ts)仅用 requestId 查询持久 HumanRequest，核对已回答状态、原 Task/Run 及当前所有权；原始 answer、answeredAt 与稳定消息身份进入聊天适配。问题、信封里的替换正文、超时推荐项和单独的“同意”不能借用保存意图，即使开启自动登记也要求回答正文独立明确表达处理请求，并经过独立语义核验。
+
+回答首次被观察时复用已有 requests 代次屏障，恢复重放不续期、不重复登记，读取已有屏障不再重写情境快照。语义核验返回后再次检查归属；旧适配器在 Task 关闭或换 Run 后不能继续查询、投影或提交该回答。未启用过情境的普通问答不创建个人情境库。持久格式、HumanRequest、HTTP 和设置界面合同均未新增字段。
+
+新增[回答回归](../test/personal-context-answer.test.js)，最终共 10 项，覆盖实际 CLI askhuman 到持久保存、实际 Pi 的独立语义请求、原文与接收时间、幂等恢复、开关关闭再开启、Run 归属及异步核验竞态、旧适配器投影、伪造信封正文、超时阻止旧请求复用及无情境库的普通回答。开发中回归发现新来源元数据误传严格宿主 schema，改为只传明确的消息字段；同时修正测试夹具对协议内容块和 CLI 初始配置的处理。对抗复查补充旧适配器的读取/投影检查，之后重新构建并复验相关流程。
+
+执行过以下 9 文件回归，**146 通过、0 失败、0 跳过**，约 120 秒：
+
+```sh
+node --test --test-concurrency=1 test/personal-context-answer.test.js test/personal-context.test.js test/personal-context-chat.test.js test/personal-context-assessment.test.js test/personal-context-pi.test.js test/personal-context-delivery.test.js test/main-inbox-delivery.test.js test/monitoring-pause.test.js test/architecture-boundaries.test.js
+```
+
+追加无库观察、旧适配器投影用例并完成对应修复后，`npm run verify` 全部通过，包含 CLI 构建、lint、两套类型、格式、文档和源码卫生检查。随后使用最终构建复验直接受影响的 4 文件，**70 通过、0 失败、0 跳过**，约 50 秒；包含全部新增 10 项及两条既有 Pi 工具路径：
+
+```sh
+node --test --test-concurrency=1 test/personal-context-answer.test.js test/personal-context-chat.test.js test/personal-context-pi.test.js test/personal-context-delivery.test.js
+```
+
+模型全部使用隔离本地假服务；本批未执行浏览器、原生桌面、`verify:full`、实际模型或长期驻留验收。R 仍未全部完成：尚未观察的回答没有答复时刻即绑定的代次凭证，纯 `source=human` 拼接输入仍不签发来源，跨 Run、排队消息及强制压缩后的完整持续授权继续待验收。下一步沿 R 补齐上述来源和生命周期合同，再进入 C 的容量维护；不将本批视为完整 M1 或自然语言质量验收。
